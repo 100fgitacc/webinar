@@ -1,0 +1,140 @@
+/* components/index.module.css */
+
+.chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 704px;
+    padding: 25px;
+    border-radius: 15px;
+    background-color: #181A40;
+  }
+  
+  .chat-inner {
+    position: relative;
+    max-height: 470px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 25px;
+  }
+  
+  .pinned-message {
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    background-color: #564EFF;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .message {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 35px;
+  }
+  
+  .message:last-child {
+    margin-bottom: 0px;
+  }
+  
+  .message-data {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .sender-name {
+    margin-right: 10px;
+    padding: 5px 10px;
+    color: #000;
+    background-color: #FFD900;
+    border-radius: 4px;
+  }
+  
+  .sending-time {
+    opacity: 0.4;
+  }
+  
+  .message-text {
+    white-space: normal; 
+    max-width: 80%; 
+    overflow-wrap: break-word;
+  }
+  
+  .textarea {
+    width: 100%;
+    min-height: 105px;
+    padding: 15px 13px;
+    border-radius: 10px;
+    background-color: #0C0C2A;
+    resize: none;
+  }
+  
+  .btn {
+    margin-top: 15px;
+    padding: 11px 20px 11px 41px;
+    position: relative;
+    background-color: #05E9F0;
+    color: #000;
+    border-radius: 5px;
+  }
+  
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    background-image: url('/assets/img/btn.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 17px;
+    height: 17px;
+  }
+  
+  .chat-inner::-webkit-scrollbar,
+  .textarea::-webkit-scrollbar {
+    width: 3px;
+    border-radius: 10px;
+  }
+  
+  .chat-inner::-webkit-scrollbar-track,
+  .textarea::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+  }
+  
+  .chat-inner::-webkit-scrollbar-thumb,
+  .textarea::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+  }
+  
+  .chat-inner::-webkit-scrollbar-thumb:hover,
+  .textarea::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  .pinned-controls{
+    display: flex;
+    align-items: flex-start;
+  }
+  .pin-btn{
+    background-image: url('/assets/img/pin-btn.png');
+  }
+  .unpin-btn{
+    background-image: url('/assets/img/unpin-btn.png');
+  }
+  .pin-btn, .unpin-btn {
+    margin-right: 15px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+.chat-login-btn{
+  margin-top: 10px;
+  font-size: 12px;
+  text-decoration: underline !important;
+  cursor: pointer;
+}

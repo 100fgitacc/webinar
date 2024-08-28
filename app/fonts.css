@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'Geologica';
+    src: url('/assets/fonts/Geologica-Light.ttf') format('ttf'),
+    url('/assets/fonts/Geologica-Medium.ttf') format('ttf'),
+    url('/assets/fonts/Geologica-Regular.ttf') format('ttf'),
+    url('/assets/fonts/Geologica-Bold.ttf') format('ttf'),
+}
+
+@font-face {
+    font-family: 'Wadik';
+    src: url('/assets/fonts/Wadik.otf') format('truetype'),
+         url('/assets/fonts/Wadik.woff') format('woff');
+}

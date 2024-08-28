@@ -1,0 +1,152 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  outline: 0 !important;
+  -webkit-appearance: none;
+}
+ul[class],
+ol[class] {
+  padding: 0;
+}
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  font-family: "Geologica", sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: #fff;
+  background: #2C2C2C;
+  margin: 0;
+  
+}
+a {
+  text-decoration: none !important;
+  color: #fff;
+  -webkit-transition: all 0.2s ease;
+  -moz-transition: all 0.2s ease;
+  -o-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+}
+img {
+  object-fit: cover;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  display: block;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Wadik", sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+input,
+button,
+textarea,
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+textarea:disabled,
+button:disabled {
+  opacity: 0.5;
+}
+
+.my-swal-popup {
+  padding: 50px 25px !important;
+  background: none; 
+  border-radius: 5px; 
+  overflow: hidden;
+}
+
+.swal2-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swal2-popup {
+  box-shadow: none; 
+  background-color: #101239;
+}
+
+.swal2-close {
+  color: white; 
+  font-size: 1.2em;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+.react-tel-input{
+  margin-bottom: 15px !important;
+}
+.react-tel-input .flag-dropdown{
+  border: none !important;
+}
+.react-tel-input input {
+  padding: 10px !important;
+  padding-left: 40px !important;
+  width: 100%;
+  margin-bottom: 16px !important ;
+  border: 1px solid #ffd900 !important;
+  border-radius: 4px !important;
+  font-size: 16px !important;
+  background-color: transparent !important;
+}
+.react-tel-input .flag-dropdown,
+.react-tel-input .selected-flag:hover, .react-tel-input .selected-flag:focus{
+  background-color: transparent !important;
+}
+.react-tel-input .country-list{
+  background-color: #101239 !important;
+  top: -125px !important;
+  max-height: 250px !important;
+}
+.country{
+  display: flex !important;
+  justify-content: flex-start !important;
+  text-align: left;
+}
+.react-tel-input .country-list .country .dial-code{
+  color: #fff !important;
+}
+.react-tel-input .country-list .country.highlight{
+  color: #ffd900a1 !important;
+}
+.react-tel-input .country-list .country.highlight {
+  background-color: #ffd900b7!important;
+}
+.react-tel-input .country-list .country:hover{
+  background-color: #f1f1f130 !important;
+}
+.react-tel-input .country-list{
+  width: 350px !important;
+  box-shadow: none !important;
+}
+div:where(.swal2-container) .swal2-html-container{
+  padding: 0 !important;
+}

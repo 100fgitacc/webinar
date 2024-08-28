@@ -1,0 +1,78 @@
+.player{
+    position: relative;
+    border-radius: 15px;
+    max-width: 855px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.play-btn{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-image: url('/assets/img/play.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  width: 24px;
+  height: 28px;
+}  
+.quality-selector {
+  font-size: 12px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+.quality-selector select {
+  padding: 5px 10px;
+  background-color: #000000a6;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.stream-not-started,
+.stream-end{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  max-width: 855px;
+  overflow: hidden;
+  width: 100%;
+  height: 480px;
+  background-color: #181A40;
+}
+.popup {
+  position: absolute; 
+  right: 0;
+  bottom: 0; 
+  transform: translateX(100%) translateY(100%); 
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #000;
+  background-color: #FFD900;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; 
+  z-index: 100;
+}
+
+.showPopup {
+  opacity: 1;
+  transform: translateX(0) translateY(0);
+}
+@media screen and (max-width: 576px) {
+  
+  .stream-not-started,
+  .stream-end{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    max-width: 360px;
+    overflow: hidden;
+    width: 100%;
+    height: 185px;
+    background-color: #181A40;
+  }
+ }
