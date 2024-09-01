@@ -7,15 +7,13 @@ const HeaderMobile = ({ isAdmin,userOnline }) => {
   const router = useRouter();
 
   const handleLogout = async (event) => {
-    event.preventDefault(); // Предотвратить стандартное действие
+    event.preventDefault(); 
 
     try {
-      // Отправка запроса на сервер для удаления куки
       await fetch('/api/user_logout', {
         method: 'POST',
       });
 
-      // Перенаправление на страницу входа
       router.push('/');
     } catch (error) {
       console.error('Ошибка при выходе:', error);
@@ -25,6 +23,15 @@ const HeaderMobile = ({ isAdmin,userOnline }) => {
   return (
     <header className={styles.header}>
     <div className={styles['nav-container']}>
+      <div className={styles['members-count']}>
+        <Image className={styles.icon} src='/assets/img/fluent_person-20-filled.png' alt='icon' width={17} height={17} />
+        <p>Участники</p>
+        <div className={styles.count}>
+          <p>{userOnline || 0}</p>
+          <p>/</p>
+          <p>100</p>
+        </div>
+      </div>
       <Image className={styles.logo} src='/assets/img/logo.png' alt='logo' width={57} height={17}/>
       <nav>
         <ul className={styles.nav}>
@@ -46,15 +53,7 @@ const HeaderMobile = ({ isAdmin,userOnline }) => {
         </ul>
       </nav>
     </div>
-    <div className={styles['members-count']}>
-      <Image className={styles.icon} src='/assets/img/fluent_person-20-filled.png' alt='icon' width={17} height={17} />
-      <p>Участники</p>
-      <div className={styles.count}>
-        <p>{userOnline || 0}</p>
-        <p>/</p>
-        <p>100</p>
-      </div>
-    </div>
+    
   </header>
   );
 };

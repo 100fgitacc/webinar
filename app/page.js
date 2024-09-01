@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { decodeJwt } from 'jose';
 import axios from 'axios';
-import HeaderMobile from '/components/header_mobile';
+import Image from 'next/image';
 
 const HomePage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -174,20 +174,19 @@ const HomePage = () => {
   return (
     <section className={styles.homePage}>
       <div className={styles.inner}>
-        {windowWidth <= 525 ? (
+        {/* {windowWidth <= 525 ? (
           <HeaderMobile isAdmin={isAdmin} userOnline={userOnline} />
-        ) : (
+        ) : ( */}
           <Header isAdmin={isAdmin} userOnline={userOnline} />
-        )}
-
+        {/* )} */}
+          <h1 className={styles['main-title']}>
+          Как зарабатывать на крипте сегодня, если не знаешь, на чем?
+          </h1>
         <div className={styles.container}>
           <div className={styles['player-container']}>
-            <h1 className={styles['main-title']}>
-              Название вебинара «Как зарабатывать на крипте сегодня, если не знаешь, на чем?»
-            </h1>
             <VimeoPlayer startStream={startStream} />
             <Link className={styles.banner} href='https://www.google.com/' target="_blank">
-              Кнопка или баннер
+            <Image className={styles.icon} src='/assets/img/button.png' alt='icon' width={720} height={70} />
             </Link>
           </div>
           <div className={styles['comments-container']}>

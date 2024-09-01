@@ -1,47 +1,41 @@
 .homePage{
-    
     margin: 0 auto;
     padding-top: 28px;
     padding-bottom: 28px;
-    padding-right: 15px;
-    padding-left: 15px;
+    padding-right: 45px;
+    padding-left: 45px;
     background-image: url('/assets/img/bg.png');
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
   }
   .inner{
-    max-width: 1109px;
     margin: 0 auto;
   }
   .container{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding-top: 100px;
   }
   .player-container{
-    max-width: 825px;
-    width: 100%;
+    width: 80%;
   }
   .main-title{
-    max-width: 653px;
-    margin-bottom: 28px;
+    margin-top: 78px;
+    margin-bottom: 30px;
     font-size: 24px;
   }
   .banner{
     margin-top: 4px;
     margin-bottom: 180px;
-    display: block;
-    padding: 39px 0;
-    background: #181A40;
-    border-radius: 15px;
+    display: flex;
+    justify-content: center;
     text-align: center;
+    cursor: pointer;
   }
   .comments-container{
-    max-width: 255px;
-    width: 100%;
-    margin-top: 40px;
+    min-width: 350px;
+    width: 20%;
     margin-left: 30px;
   }
   .comments-title{
@@ -49,8 +43,8 @@
     margin-bottom: 27px;
   }
   .comments-title span{
-    display: block;
     color: #85FBFF;
+    font-size: 14px;
   }
   .copyright{
     opacity: 0.41;
@@ -62,12 +56,16 @@
     .banner{
       margin-bottom: 47px;
     }
+    .player-container{
+      width: 100%;
+    }
     .comments-container{
       margin-left: 0;
       max-width: unset;
+      width: 100%;
     }
     .chat-wrapper{
-      min-height: 685px;
+      min-height: 635px;
     }
     .copyright{
       margin-top: 28px;
@@ -77,10 +75,18 @@
   @media screen and (max-width: 768px) {
   }
   @media screen and (max-width: 576px) {
+  .homePage{
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .player-container,.comments-container{
+    width: 100%;
+  }
   .container{
-    padding-top: 31px;
+    padding-top: 15px;
   }
   .main-title{
+    margin-bottom: 0;
     font-size: 20px;
   }
   .banner{
@@ -88,10 +94,12 @@
     margin-bottom: 7px;
   }
   .comments-title{
+    display: none;
     font-size: 15px;
   }
   .comments-title span{
     display: inline;
   }
+ 
   
   }

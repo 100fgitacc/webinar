@@ -57,3 +57,8 @@
   font-size: 14px;
   max-width: 250px;
 }
+@media screen and (max-width: 576px) {
+  .container{
+    padding-top: 15px;
+  }
+}

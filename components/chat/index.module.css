@@ -64,7 +64,7 @@
   
   .textarea {
     width: 100%;
-    min-height: 105px;
+    min-height: 75px;
     padding: 15px 13px;
     border-radius: 10px;
     background-color: #0C0C2A;
@@ -137,4 +137,16 @@
   font-size: 12px;
   text-decoration: underline !important;
   cursor: pointer;
+}
+@media screen and (max-width: 576px) {
+.chat-wrapper{
+  max-height: 350px;
+  min-height: unset;
+}
+.message {
+  font-size: 12px;
+}
+.message-text{
+  font-size: 14px;
+}
 }
