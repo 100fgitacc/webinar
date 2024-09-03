@@ -174,7 +174,6 @@ const HomePage = () => {
     // Функция для установки высоты видимой области экрана
     const setViewportHeight = () => {
       let vh = window.innerHeight * 0.01;
-      console.log(`Calculated viewport height: ${vh * 100}px`); // Выводим значение в консоль
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     
     };

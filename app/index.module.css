@@ -1,5 +1,6 @@
 .homePage {
   margin: 0 auto;
+  padding-top: 28px;
   padding-right: 45px;
   padding-left: 45px;
   background-image: url('/assets/img/bg.png');
@@ -32,6 +33,7 @@
 }
 
 .main-title {
+  margin-top: 74px;
   margin-bottom: 30px;
   font-size: 24px;
 }
@@ -65,8 +67,9 @@
 
 .copyright {
   opacity: 0.41;
-  text-align: center;
-  padding-top: 10px;
+  text-align: left;
+  margin-top: 105px;
+  margin-bottom: 25px;
 }
 
 @media screen and (max-width: 968px) {
@@ -74,7 +77,7 @@
       flex-direction: column;
   }
   .banner {
-      margin-bottom: 47px;
+      margin-bottom: 0px;
   }
   .player-container {
       width: 100%;
@@ -83,12 +86,10 @@
     margin-left: 0;
     max-width: unset;
     width: 100%;
-    max-height: calc(var(--vh)* 70);
+    max-height: calc(var(--vh)* 80);
      
   }
-  .chat-wrapper {
-      min-height: 635px;
-  }
+  
   .copyright {
       margin-top: 28px;
       margin-bottom: 26px;

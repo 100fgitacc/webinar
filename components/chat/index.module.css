@@ -4,7 +4,6 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    min-height: 704px;
     padding: 25px;
     border-radius: 15px;
     background-color: #181A40;
@@ -12,7 +11,9 @@
   
   .chat-inner {
     position: relative;
-    max-height: calc(var(--vh) * 16);
+    height: 100%;
+    /* max-height: calc(var(--vh) * 16); */
+    max-height: 400px;
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 25px;
