@@ -3,6 +3,10 @@
     border-radius: 15px;
     overflow: hidden;
     width: 100%;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .play-btn{
@@ -30,14 +34,14 @@
   cursor: pointer;
 }
 .stream-not-started,
-.stream-end{
+.stream-end {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-grow: 1;
   border-radius: 15px;
   overflow: hidden;
   width: 100%;
-  height: 480px;
   background-color: #181A40;
 }
 .popup {
@@ -67,10 +71,9 @@
     align-items: center;
     justify-content: center;
     border-radius: 15px;
-    max-width: 360px;
     overflow: hidden;
     width: 100%;
-    height: 185px;
+    height: calc(var(--vh) * 20);
     background-color: #181A40;
   }
  }

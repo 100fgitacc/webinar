@@ -62,34 +62,38 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
 
   const handleMessageSend = async () => {
     if (comment.trim() === '') return;
-
-    const tempMessage = {
-      id: Date.now(),
-      sender: !isAdmin ? userName || currentName : 'Модератор',
-      text: comment.replace(/\n/g, '\\n'),
-      sending_time: new Date().toISOString(),
-      pinned: false
-    };
-
-    setComment('');
-
-    try {
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newMessages: [tempMessage] })
-      });
-
-      if (response.ok) {
-        const serverResponse = await response.json();
-        // console.log('Ответ сервера с сообщением:', serverResponse);
-      } else {
-        console.error('Ошибка при отправке сообщения');
+    if(!chatState){
+      popupShow();    
+    }else{
+      const tempMessage = {
+        id: Date.now(),
+        sender: !isAdmin ? userName || currentName : 'Модератор',
+        text: comment.replace(/\n/g, '\\n'),
+        sending_time: new Date().toISOString(),
+        pinned: false
+      };
+  
+      setComment('');
+  
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newMessages: [tempMessage] })
+        });
+  
+        if (response.ok) {
+          const serverResponse = await response.json();
+          // console.log('Ответ сервера с сообщением:', serverResponse);
+        } else {
+          console.error('Ошибка при отправке сообщения');
+        }
+      } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error);
+       
       }
-    } catch (error) {
-      console.error('Ошибка при отправке сообщения:', error);
-     
     }
+    
   };
 
   const handleScroll = () => {
@@ -240,15 +244,12 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
               placeholder='Ваш комментарий' 
               value={comment} 
               onChange={handleCommentChange}
-              disabled={!chatState}
             ></textarea>
           </div>
-          <button disabled={!chatState} type='button' className={styles.btn} onClick={handleMessageSend}>
+          <button type='button' className={styles.btn} onClick={handleMessageSend}>
             Отправить
           </button>
         </form>
-        {!chatState && (<a className={styles['chat-login-btn']} onClick={()=>popupShow()}>Авторизуйтесь что бы оставлять комментарии</a>
-        )}
        
     </div>
   );

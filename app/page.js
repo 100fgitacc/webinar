@@ -170,10 +170,29 @@ const HomePage = () => {
   const handleClientsCount = (e) => {
     setUserOnline(e);
   };
+  useEffect(() => {
+    // Функция для установки высоты видимой области экрана
+    const setViewportHeight = () => {
+      let vh = window.innerHeight * 0.01;
+      console.log(`Calculated viewport height: ${vh * 100}px`); // Выводим значение в консоль
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    
+    };
   
+    // Устанавливаем начальную высоту
+    setViewportHeight();
+  
+    // Добавляем обработчик события resize
+    window.addEventListener('resize', setViewportHeight);
+  
+    // Чистим обработчик при размонтировании компонента
+    return () => {
+      window.removeEventListener('resize', setViewportHeight);
+    };
+  }, []);
+
   return (
     <section className={styles.homePage}>
-      <div className={styles.inner}>
         {/* {windowWidth <= 525 ? (
           <HeaderMobile isAdmin={isAdmin} userOnline={userOnline} />
         ) : ( */}
@@ -196,10 +215,11 @@ const HomePage = () => {
             <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} />
           </div>
         </div>
-        <p className={styles.copyright}>
-          © 2024 - 100f.com
-        </p>
-      </div>
+        {windowWidth >= 525 &&
+          <p className={styles.copyright}>
+            © 2024 - 100f.com
+          </p>
+        } 
     </section>
   );
 };
