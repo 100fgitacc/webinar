@@ -5,13 +5,13 @@ import 'react-phone-input-2/lib/style.css';
 import styles from './page.module.css'; 
 import Swal from 'sweetalert2';
 
-const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
+const UserLogin = ({streamEndSeconds, unblockedChat}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
     const phoneDigits = phone.replace(/\D/g, ''); 
@@ -19,7 +19,6 @@ const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
       setError('Пожалуйста, введите корректный номер телефона');
       return;
     }
-    setIsLoading(true);
     try {
       const response = await axios.post('/api/user_login', {
         name,
@@ -28,14 +27,15 @@ const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
         password: null,
         is_admin: 0,
       });
+      setIsLoading(true);
       if (response.status === 200) {
         setSuccess('Авторизация успешна');
         Swal.close(); 
         unblockedChat(true);
+        setIsLoading(false);
       }
     } catch (err) {
       setError('Ошибка авторизации');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -51,10 +51,9 @@ const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          disabled={isLoading}
         />
         <label htmlFor="phone">Телефон:</label>
-        <PhoneInput
+       <PhoneInput
           country={'ua'}
           value={phone}
           onChange={phone => setPhone(phone)}
@@ -62,15 +61,10 @@ const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
           buttonClass={styles.phoneButton}
           dropdownClass={styles.phoneDropdown}
           required
-          disabled={isLoading}
         />
-        
-        {isLoading ? (
-          <p>Авторизация...</p>
-        ) : (
-          <button type="submit" className={styles.submitButton}>Войти</button>
-        )}
+        <button type="submit" className={styles.submitButton}>Войти</button>
 
+        {isLoading && <p>Авторизация</p>}
         {error && <p className={styles.error}>{error}</p>}
         {success && <p className={styles.success}>{success}</p>}
       </form>

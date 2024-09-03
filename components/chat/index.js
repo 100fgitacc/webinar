@@ -60,14 +60,14 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     setComment(e.target.value);
   };
 
-  const handleMessageSend = async () => {
+  const handleMessageSend = async (name) => {
     if (comment.trim() === '') return;
     if(!chatState){
       popupShow();    
     }else{
       const tempMessage = {
         id: Date.now(),
-        sender: !isAdmin ? userName || currentName : 'Модератор',
+        sender: !isAdmin ? userName || currentName || name : 'Модератор',
         text: comment.replace(/\n/g, '\\n'),
         sending_time: new Date().toISOString(),
         pinned: false
@@ -155,7 +155,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
 
   const popupShow = () => {
     MySwal.fire({
-      html: <UserLogin streamEndSeconds={streamEndSeconds} unblockedChat={handeChatUnblock}/>, 
+      html: <UserLogin streamEndSeconds={streamEndSeconds} unblockedChat={handeChatUnblock} />, 
       showCloseButton: true, 
       showConfirmButton: false, 
       customClass: {
@@ -186,12 +186,19 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
   useEffect(() => {
     const token = Cookies.get('authToken');
     if (token) {
-    const decodedToken = decodeJwt(token);
-    setCurrentName(decodedToken.name);
+      const decodedToken = decodeJwt(token);
+      if (chatState || token) {
+        setCurrentName(decodedToken.name);
+        setChatState(true);
+        
+      }
+      if (chatState && comment && token) {
+        handleMessageSend(decodedToken.name);
+        
+      }
     }
-    if (chatState || token) {
-      setChatState(true);
-    }
+   
+   
   }, [chatState]);
  
   

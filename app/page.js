@@ -178,13 +178,9 @@ const HomePage = () => {
     
     };
   
-    // Устанавливаем начальную высоту
     setViewportHeight();
   
-    // Добавляем обработчик события resize
     window.addEventListener('resize', setViewportHeight);
-  
-    // Чистим обработчик при размонтировании компонента
     return () => {
       window.removeEventListener('resize', setViewportHeight);
     };
@@ -192,11 +188,7 @@ const HomePage = () => {
 
   return (
     <section className={styles.homePage}>
-        {/* {windowWidth <= 525 ? (
-          <HeaderMobile isAdmin={isAdmin} userOnline={userOnline} />
-        ) : ( */}
           <Header isAdmin={isAdmin} userOnline={userOnline} />
-        {/* )} */}
           <h1 className={styles['main-title']}>
           Как зарабатывать на крипте сегодня, если не знаешь, на чем?
           </h1>
