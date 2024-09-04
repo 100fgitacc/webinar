@@ -28,7 +28,7 @@ const Header = ({ isAdmin,userOnline }) => {
         <div className={styles.count}>
           <p>{userOnline || 0}</p>
           <p>/</p>
-          <p>100</p>
+          <p>300</p>
         </div>
       </div>
       <Image className={styles.logo} src='/assets/img/logo.png' alt='logo' width={57} height={17}/>

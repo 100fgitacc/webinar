@@ -49,6 +49,23 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       eventSource.close();
     };
   }, []);
+  useEffect(() => {
+    const eventSource = new EventSource('/api/get_users_online');
+  
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+       console.log(data);
+       
+      } catch (error) {
+        console.error('Ошибка при обработке сообщений SSE:', error);
+      }
+    };
+  
+    return () => {
+      eventSource.close();
+    };
+  }, []);
 
   useEffect(() => {
     if (!isUserScrolling) {

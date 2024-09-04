@@ -44,9 +44,16 @@ export async function GET() {
       const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
 
       commentsSchedule.forEach(({ showAt, text, sender, pinned }) => {
+        // Рассчитываем время отправки комментария относительно начала стрима
         const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
-        
-        if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
+      
+        // Проверяем, если комментарий должен быть отправлен до начала стрима
+        if (showAt < 0) {
+          console.log(`Комментарий "${text}" должен быть отправлен до начала стрима.`);
+        }
+      
+        // Если комментарий еще не запланирован, планируем его
+        if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) {
           schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
             const taskClient = await pool.connect(); 
             try {
@@ -57,13 +64,16 @@ export async function GET() {
                 sending_time: new Date().toISOString(),
                 pinned: pinned || false
               };
-              
+      
+              // Сохраняем сообщение в базу данных
               await saveMessageToDb(message, taskClient);
+      
+              // Отправляем сообщение всем клиентам
               broadcastMessages([message]);
             } catch (error) {
               console.error('Ошибка во время выполнения запланированного задания:', error);
             } finally {
-              taskClient.release(); 
+              taskClient.release();
             }
           });
         } else {

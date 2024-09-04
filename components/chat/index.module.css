@@ -158,7 +158,7 @@
 }
 @media (max-height: 700px) {
   .chat-wrapper{
-    min-height: calc(var(--vh)* 45);
+    min-height: calc(var(--vh)* 43);
   }
   .chat-inner{
     max-height: calc(var(--vh)* 16);
