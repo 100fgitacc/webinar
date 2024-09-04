@@ -38,7 +38,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
             ...prevMessages,
             ...data.messages
           ]);
-          setClientsCount(data.clientsCount);
+          // setClientsCount(data.clientsCount);
         }
       } catch (error) {
         console.error('Ошибка при обработке сообщений SSE:', error);
@@ -55,17 +55,17 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-       console.log(data);
-       
+        setClientsCount(data.onlineUsers);
+        console.log('Полученные данные:', data);
       } catch (error) {
         console.error('Ошибка при обработке сообщений SSE:', error);
       }
     };
-  
     return () => {
       eventSource.close();
     };
   }, []);
+  
 
   useEffect(() => {
     if (!isUserScrolling) {

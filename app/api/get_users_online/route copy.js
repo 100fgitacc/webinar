@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import schedule from 'node-schedule';
 import pool from '/app/connection'; 
@@ -49,8 +48,8 @@ async function broadcastOnlineUsers(count) {
 
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
-  console.log('Starting GET request for online users...');
   const client = await pool.connect();
+  console.log('Connected to the database.');
 
   try {
     const queryStream = `
@@ -60,32 +59,32 @@ export async function GET() {
       LIMIT 1
     `;
     const { rows: streamRows } = await client.query(queryStream);
+    console.log('Stream data fetched:', streamRows);
 
     if (!streamRows.length) {
       console.error('No stream data found.');
       return NextResponse.json({ error: 'No stream data found' }, { status: 500 });
     }
 
-    console.log('Stream data found:', streamRows[0]);
-
     const startTime = new Date(streamRows[0]?.start_date); // Время начала стрима
     const videoDuration = streamRows[0]?.video_duration * 1000; // Продолжительность видео
     const scenarioId = streamRows[0]?.scenario_id; // Получаем scenario_id для использования
 
-    console.log(`Scenario ID: ${scenarioId}, Video Duration: ${videoDuration}`);
+    console.log(`Stream start time: ${startTime}, Duration: ${videoDuration}, Scenario ID: ${scenarioId}`);
 
+    // Запрашиваем данные сценария для симуляции пользователей
     const queryScenario = `
       SELECT scenario_online
       FROM scenario
       WHERE id = $1
     `;
     const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+    console.log('Scenario data fetched:', scenarioRows);
+
     if (!scenarioRows.length) {
-      console.error('No scenario data found.');
+      console.error('No scenario data found for the given scenario ID.');
       return NextResponse.json({ error: 'No scenario data found' }, { status: 500 });
     }
-
-    console.log('Scenario data found:', scenarioRows[0]);
 
     // Парсим данные из колонки scenario_online
     scenarioData = scenarioRows[0]?.scenario_online || '[]';
@@ -93,30 +92,30 @@ export async function GET() {
 
     // Если задача еще не была запланирована
     if (!isScheduled) {
-      console.log('Scheduling tasks...');
       isScheduled = true;
+      console.log('Scheduling user activity updates.');
 
       scenarioData.forEach(({ showAt }) => {
         const userActivityTime = new Date(startTime.getTime() + showAt * 1000);
+        console.log(`Scheduling user activity for ${userActivityTime} (showAt: ${showAt} seconds).`);
+        
         schedule.scheduleJob(userActivityTime, () => simulateUserActivity(showAt));
-        console.log(`Scheduled simulation at ${userActivityTime}`);
       });
 
       // Планируем задачу для завершения стрима по времени окончания видео
       const endStreamTime = new Date(startTime.getTime() + videoDuration);
       schedule.scheduleJob(endStreamTime, () => {
+        console.log(`Stream ended at ${endStreamTime}`);
         isScheduled = false; // Сбрасываем флаг для возможности планирования нового стрима
-        console.log('Stream ended. Flag reset.');
       });
     }
 
     // Создаем поток данных для SSE
-    console.log('Creating data stream for SSE...');
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
     clients.push(writer);
-    console.log('Client connected, total clients:', clients.length);
+    console.log(`Client connected. Total clients: ${clients.length}`);
 
     // Отправляем начальные данные
     writer.write(`data: ${JSON.stringify({ onlineUsers: currentOnlineUsers })}\n\n`);
@@ -126,7 +125,7 @@ export async function GET() {
       const index = clients.indexOf(writer);
       if (index !== -1) {
         clients.splice(index, 1);
-        console.log('Client disconnected, total clients:', clients.length);
+        console.log(`Client disconnected. Total clients: ${clients.length}`);
       }
     };
     writer.closed.then(onClose, onClose);
