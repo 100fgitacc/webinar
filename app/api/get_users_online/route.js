@@ -56,7 +56,6 @@ export async function GET() {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
 
         schedule.scheduleJob(scheduleTime, () => {
-          console.log(`Изменение количества пользователей до ${count} в ${scheduleTime}`);
           currentOnlineUsers = count;
 
           // Трансляция количества пользователей всем клиентам
@@ -67,7 +66,6 @@ export async function GET() {
       // Планируем завершение задачи по времени окончания видео
       const endStreamTime = new Date(startTime.getTime() + videoDuration);
       schedule.scheduleJob(endStreamTime, () => {
-        console.log(`Стрим закончился в ${endStreamTime}`);
         isScheduled = false; // Сбрасываем флаг для возможности планирования нового стрима
       });
     }

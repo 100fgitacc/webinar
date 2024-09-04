@@ -7,6 +7,7 @@
     padding: 25px;
     border-radius: 15px;
     background-color: #181A40;
+    min-height: 636px;
   }
   
   .chat-inner {
@@ -138,6 +139,11 @@
   font-size: 12px;
   text-decoration: underline !important;
   cursor: pointer;
+}
+@media screen and (max-width: 968px) {
+  .chat-wrapper{
+    min-height: unset;
+  }
 }
 @media screen and (max-width: 576px) {
 .chat-wrapper{

@@ -5,34 +5,25 @@ import axios from 'axios';
 
 const VimeoPlayer = ({ startStream }) => {
   const playerRef = useRef(null);
+  const containerRef = useRef(null);
   const [player, setPlayer] = useState(null);
   const [isPlayed, setIsPlayed] = useState(false);
   const [quality, setQuality] = useState('720p');
   const [showPopup, setShowPopup] = useState(false);
   const [streamStatus, setStreamStatus] = useState(null);
-  const [windowWidth, setWindowWidth] = useState(null);
+  const [playerWidth, setPlayerWidth] = useState(null);
 
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setWindowWidth(window.innerWidth);
-
-      const handleResize = () => setWindowWidth(window.innerWidth);
-      window.addEventListener('resize', handleResize);
-
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, []);
-
-  useEffect(() => {
+    
     if (playerRef.current && !player) {
       const newPlayer = new Player(playerRef.current, {
         id: startStream.video_id,
-        width: windowWidth > 720 ? 855 : windowWidth * 0.9 , // Меняем ширину плеера в зависимости от ширины окна
-        height: windowWidth > 720 ? 480 : windowWidth * 0.9 * (480 / 855), // Высота меняется пропорционально
+        width: playerWidth ,
+        height:  playerWidth * (480 / 855), 
         controls: false,
         quality,
       });
@@ -63,7 +54,7 @@ const VimeoPlayer = ({ startStream }) => {
       });
     }
     setStreamStatus(startStream.streamStatus);
-  }, [player, startStream, quality, timings, streamStatus, windowWidth]);
+  }, [player, startStream, quality, timings, streamStatus]);
 
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
@@ -104,7 +95,12 @@ const VimeoPlayer = ({ startStream }) => {
       });
     }
   };
-  
+  useEffect(() => {
+    if (containerRef.current) {
+      const width = containerRef.current.offsetWidth;
+      setPlayerWidth(width); 
+    }
+  }, [playerRef]);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
@@ -145,7 +141,7 @@ const VimeoPlayer = ({ startStream }) => {
   };
 
   return (
-    <div className={styles.player}>
+    <div ref={containerRef} className={styles.player}>
       {renderStreamStatus()}
       <div className={`${styles.popup} ${showPopup ? styles.showPopup : ''}`}>
         {message}
