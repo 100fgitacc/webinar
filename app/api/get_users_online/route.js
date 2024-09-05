@@ -11,7 +11,8 @@ let isScheduled = false; // Флаг, чтобы не запускать зад�
 async function broadcastOnlineUsers(count) {
   const userPayload = { onlineUsers: count };
   const userData = `data: ${JSON.stringify(userPayload)}\n\n`;
-
+ 
+  
   clients.forEach((client) => {
     client.write(userData).catch((err) => {
       const clientIndex = clients.indexOf(client);
@@ -47,11 +48,14 @@ export async function GET() {
     const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
     const scenarioOnline = scenarioRows[0]?.scenario_online || [];
 
+    // Сбрасываем текущее количество пользователей перед началом нового цикла планирования
+    currentOnlineUsers = 0;
+
     // Если задача ещё не была запланирована
     if (!isScheduled) {
       isScheduled = true;
 
-      // Планируем изменение онлайн пользователей 
+      // Планируем изменение онлайн пользователей
       scenarioOnline.forEach(({ showAt, count }) => {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
       
@@ -72,6 +76,8 @@ export async function GET() {
       const endStreamTime = new Date(startTime.getTime() + videoDuration);
       schedule.scheduleJob(endStreamTime, () => {
         isScheduled = false; // Сбрасываем флаг для возможности планирования нового стрима
+        currentOnlineUsers = 0; // Сбрасываем количество пользователей после окончания стрима
+        broadcastOnlineUsers(currentOnlineUsers); // Обновляем всех клиентов
       });
     }
 
