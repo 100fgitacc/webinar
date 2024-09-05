@@ -51,16 +51,21 @@ export async function GET() {
     if (!isScheduled) {
       isScheduled = true;
 
-      // Планируем изменение онлайн пользователей согласно данным сценария
+      // Планируем изменение онлайн пользователей 
       scenarioOnline.forEach(({ showAt, count }) => {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
-
-        schedule.scheduleJob(scheduleTime, () => {
+      
+        // Если время задачи в прошлом (отрицательное значение showAt)
+        if (scheduleTime < new Date()) {
           currentOnlineUsers = count;
-
-          // Трансляция количества пользователей всем клиентам
           broadcastOnlineUsers(currentOnlineUsers);
-        });
+        } else {
+          // Планируем задачу на будущее время
+          schedule.scheduleJob(scheduleTime, () => {
+            currentOnlineUsers = count;
+            broadcastOnlineUsers(currentOnlineUsers);
+          });
+        }
       });
 
       // Планируем завершение задачи по времени окончания видео
