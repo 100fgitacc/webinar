@@ -84,12 +84,15 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     }else{
       const tempMessage = {
         id: Date.now(),
-        sender: !isAdmin ? userName || currentName || name : 'Модератор',
+        // sender: !isAdmin ? userName || currentName || name : 'Модератор',
+        sender: userName || currentName || name,
         text: comment.replace(/\n/g, '\\n'),
         sending_time: new Date().toISOString(),
-        pinned: false
+        pinned: false,
+        isadmin: isAdmin ? true : false
       };
-  
+      console.log(tempMessage);
+      
       setComment('');
   
       try {
@@ -221,7 +224,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
   
   return (
     <div className={styles['chat-wrapper']}>
-      <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll}  style={{ overflowY: 'auto', height: '100%' }}>
+      <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll} >
         {visibleMessages.length > 0 ? (
           visibleMessages.map((mess) => (
             <div
@@ -229,7 +232,8 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
               key={mess.id}
             >
               <div className={styles['message-data']}>
-                <p className={styles['sender-name']}>{mess.sender}</p>
+                <p className={`${mess.isadmin ? styles['admin'] : ''} ${styles['sender-name']}`}
+                >{mess.sender}</p>
                 <p className={styles['sending-time']}> {new Date(mess.sending_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
               </div>
               <div className={styles['pinned-controls']}>

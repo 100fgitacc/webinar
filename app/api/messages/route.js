@@ -43,7 +43,7 @@ export async function GET() {
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
       const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
 
-      commentsSchedule.forEach(({ showAt, text, sender, pinned }) => {
+      commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
         const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
         
         if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
@@ -55,7 +55,8 @@ export async function GET() {
                 sender,
                 text,
                 sending_time: new Date().toISOString(),
-                pinned: pinned || false
+                pinned: pinned || false,
+                isadmin: isAdmin
               };
               
               await saveMessageToDb(message, taskClient);
@@ -225,8 +226,8 @@ async function saveMessageToDb(message) {
   try {
 
     const insertQuery = `
-      INSERT INTO messages (id, sender, text, sending_time, pinned)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO messages (id, sender, text, sending_time, pinned, isadmin)
+      VALUES ($1, $2, $3, $4, $5, $6)
     `;
     await client.query(insertQuery, [
       message.id,
@@ -234,6 +235,7 @@ async function saveMessageToDb(message) {
       message.text,
       new Date().toISOString(), 
       message.pinned,
+      message.isadmin,
     ]);
   } catch (error) {
     console.error('Ошибка при сохранении сообщения в базе данных:', error);

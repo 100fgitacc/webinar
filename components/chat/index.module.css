@@ -3,18 +3,18 @@
 .chat-wrapper {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: space-between;
     padding: 25px;
     border-radius: 15px;
     background-color: #181A40;
-    min-height: 636px;
+    min-height: 710px;
   }
   
   .chat-inner {
     position: relative;
     height: 100%;
     /* max-height: calc(var(--vh) * 16); */
-    max-height: 400px;
+    max-height: 510px;
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 25px;
@@ -31,9 +31,8 @@
   }
   
   .message {
-    padding: 12px;
+    padding: 10px;
     border-radius: 10px;
-    margin-bottom: 35px;
   }
   
   .message:last-child {
@@ -47,18 +46,23 @@
   }
   
   .sender-name {
+    font-weight: 600;
     margin-right: 10px;
+    border-radius: 4px;
+  }
+  .admin{
+    font-weight: 300;
     padding: 5px 10px;
     color: #000;
     background-color: #FFD900;
-    border-radius: 4px;
   }
-  
   .sending-time {
+    font-weight: 100;
     opacity: 0.4;
   }
   
   .message-text {
+    font-weight: 100;
     white-space: normal; 
     max-width: 80%; 
     overflow-wrap: break-word;

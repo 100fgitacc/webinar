@@ -48,18 +48,18 @@ export async function GET() {
     const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
     const scenarioOnline = scenarioRows[0]?.scenario_online || [];
 
-    // Сбрасываем текущее количество пользователей перед началом нового цикла планирования
-    currentOnlineUsers = 0;
+    // Останавливаем все запланированные задачи, если они есть
+    console.log('Остановка предыдущего планирования');
+    schedule.gracefulShutdown().then(() => {
+      currentOnlineUsers = 0;
+      isScheduled = false;
+      console.log('Задачи сброшены, перепланируем новое расписание');
 
-    // Если задача ещё не была запланирована
-    if (!isScheduled) {
-      isScheduled = true;
-
-      // Планируем изменение онлайн пользователей
+      // Перепланировка задач сразу же
       scenarioOnline.forEach(({ showAt, count }) => {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
-      
-        // Если время задачи в прошлом (отрицательное значение showAt)
+
+        // Если время задачи в прошлом
         if (scheduleTime < new Date()) {
           currentOnlineUsers = count;
           broadcastOnlineUsers(currentOnlineUsers);
@@ -79,7 +79,7 @@ export async function GET() {
         currentOnlineUsers = 0; // Сбрасываем количество пользователей после окончания стрима
         broadcastOnlineUsers(currentOnlineUsers); // Обновляем всех клиентов
       });
-    }
+    });
 
     // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();

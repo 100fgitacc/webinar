@@ -27,8 +27,9 @@ const HomePage = () => {
     try {
       const response = await axios.get('/api/streams', { headers: { 'Cache-Control': 'no-cache' } });
       const newData = response.data;
-      const { start_date, video_duration, scenario_id, video_id } = newData;
-      return { start_date, video_duration, scenario_id, video_id };
+      const { start_date, video_duration, scenario_id, video_id, button_show_at} = newData;
+      
+      return { start_date, video_duration, scenario_id, video_id, button_show_at };
     } catch (error) {
       console.error('Error fetching stream data:', error);
       return {};
@@ -43,8 +44,9 @@ const HomePage = () => {
         console.error('No streams data available');
         return;
       }
-  
-      const { start_date, video_duration, scenario_id, video_id } = streamsData;
+      console.log(streamsData);
+      
+      const { start_date, video_duration, scenario_id, video_id, button_show_at } = streamsData;
   
       const startTime = new Date(start_date);
   
@@ -78,6 +80,7 @@ const HomePage = () => {
           streamStatus,
           scenario_id,
           video_id,
+          button_show_at
         };
   
         if (streamStatus !== 'ended') {
@@ -190,14 +193,16 @@ const HomePage = () => {
     <section className={styles.homePage}>
           <Header isAdmin={isAdmin} userOnline={userOnline} />
           <h1 className={styles['main-title']}>
-          Как зарабатывать на крипте сегодня, если не знаешь, на чем?
+          10+ актуальных сегодня способов заработка на крипте (даже без вложений)
           </h1>
         <div className={styles.container}>
           <div className={styles['player-container']}>
             <VimeoPlayer startStream={startStream} />
-            <Link className={styles.banner} href='https://www.google.com/' target="_blank">
-            <Image className={styles.icon} src='/assets/img/button.png' alt='icon' width={720} height={70} />
-            </Link>
+            {startStream.button_show_at > startStream.video_duration && (
+              <Link className={styles.banner} href='https://www.google.com/' target="_blank">
+                <Image className={styles.icon} src='/assets/img/button.png' alt='icon' width={720} height={70} />
+              </Link>
+            )}
           </div>
           <div className={styles['comments-container']}>
             <h3 className={styles['comments-title']}>
