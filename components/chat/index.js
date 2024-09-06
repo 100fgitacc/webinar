@@ -38,7 +38,6 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
             ...prevMessages,
             ...data.messages
           ]);
-          // setClientsCount(data.clientsCount);
         }
       } catch (error) {
         console.error('Ошибка при обработке сообщений SSE:', error);
@@ -56,7 +55,6 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       try {
         const data = JSON.parse(event.data);
         setClientsCount(data.onlineUsers);
-        console.log('Полученные данные:', data);
       } catch (error) {
         console.error('Ошибка при обработке сообщений SSE:', error);
       }
@@ -91,7 +89,6 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
         pinned: false,
         isadmin: isAdmin ? true : false
       };
-      console.log(tempMessage);
       
       setComment('');
   
@@ -197,9 +194,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       },
       padding: '0px', 
     }).then((result) => {
-      if (result.isConfirmed) {
-        console.log('Пользователь подтвердил действие');
-      }
+     
     });
   
   }
@@ -220,31 +215,39 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
    
    
   }, [chatState]);
- 
-  
+
+  const [expandedMessages, setExpandedMessages] = useState({});
+ const toggleExpand = (messageId) => {
+  setExpandedMessages((prev) => ({
+    ...prev,
+    [messageId]: !prev[messageId],
+  }));
+};
   return (
     <div className={styles['chat-wrapper']}>
       <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll} >
         {visibleMessages.length > 0 ? (
           visibleMessages.map((mess) => (
             <div
-              className={`${styles.message} ${mess.pinned ? styles['pinned-message'] : ''}`}
+              className={`${styles.message} ${mess.pinned ? styles['pinned-message'] : ''} ${mess.pinned ? (expandedMessages[mess.id] ? styles['expanded'] : styles['collapsed']) : ''}`}
               key={mess.id}
+              onClick={mess.pinned ? () => toggleExpand(mess.id) : undefined}
             >
               <div className={styles['message-data']}>
-                <p className={`${mess.isadmin ? styles['admin'] : ''} ${styles['sender-name']}`}
-                >{mess.sender}</p>
-                <p className={styles['sending-time']}> {new Date(mess.sending_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                <p className={`${mess.isadmin ? styles['admin'] : ''} ${styles['sender-name']}`}>
+                  {mess.sender}
+                </p>
+                <p className={styles['sending-time']}>
+                  {new Date(mess.sending_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
               </div>
               <div className={styles['pinned-controls']}>
                 {isAdmin && (
                   !mess.pinned ? (
                     <button className={styles['pin-btn']} onClick={() => handlePinMessage(mess)}>
-                     
                     </button>
                   ) : (
                     <button className={styles['unpin-btn']} onClick={() => handleUnpinMessage(mess)}>
-                  
                     </button>
                   )
                 )}

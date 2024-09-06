@@ -10,7 +10,12 @@
   text-align: center;
   color: #fff;
 }
-
+.popup-title{
+  font-size: 14px;
+  color: #fff;
+  max-width: 300px;
+  margin-bottom: 25px;
+}
 .form label {
   text-align-last: left;
   display: block;

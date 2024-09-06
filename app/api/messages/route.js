@@ -93,7 +93,6 @@ export async function GET() {
               try {
                 const deleteQuery = 'DELETE FROM messages';
                 await deleteClient.query(deleteQuery);
-                console.log('Таблица сообщений очищена.');
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {

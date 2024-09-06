@@ -23,6 +23,8 @@ async function broadcastOnlineUsers(count) {
   });
 }
 
+let currentStreamDate = null; 
+
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
   const client = await pool.connect();
@@ -39,7 +41,6 @@ export async function GET() {
     const videoDuration = streamRows[0]?.video_duration * 1000; // Продолжительность видео
     const scenarioId = streamRows[0]?.scenario_id;
 
-    // Получаем данные сценария для онлайн пользователей
     const queryScenario = `
       SELECT scenario_online
       FROM scenario
@@ -48,57 +49,56 @@ export async function GET() {
     const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
     const scenarioOnline = scenarioRows[0]?.scenario_online || [];
 
-    // Останавливаем все запланированные задачи, если они есть
-    console.log('Остановка предыдущего планирования');
-    schedule.gracefulShutdown().then(() => {
-      currentOnlineUsers = 0;
-      isScheduled = false;
-      console.log('Задачи сброшены, перепланируем новое расписание');
+    // Проверяем, изменилась ли дата планирования
+    if (isScheduled && currentStreamDate && currentStreamDate.getTime() === startTime.getTime()) {
+      console.log("Задача уже запланирована для этой даты, пропускаем новое планирование.");
+    } else {
+      schedule.gracefulShutdown().then(() => {
+        currentOnlineUsers = 0;
+        isScheduled = true; 
+        currentStreamDate = startTime; 
 
-      // Перепланировка задач сразу же
-      scenarioOnline.forEach(({ showAt, count }) => {
-        const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
+        scenarioOnline.forEach(({ showAt, count }) => {
+          const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
 
-        // Если время задачи в прошлом
-        if (scheduleTime < new Date()) {
-          currentOnlineUsers = count;
-          broadcastOnlineUsers(currentOnlineUsers);
-        } else {
-          // Планируем задачу на будущее время
-          schedule.scheduleJob(scheduleTime, () => {
+          if (scheduleTime < new Date()) {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
-          });
-        }
-      });
+          } else {
+            schedule.scheduleJob(scheduleTime, () => {
+              currentOnlineUsers = count;
+              broadcastOnlineUsers(currentOnlineUsers);
+            });
+          }
+        });
 
-      // Планируем завершение задачи по времени окончания видео
-      const endStreamTime = new Date(startTime.getTime() + videoDuration);
-      schedule.scheduleJob(endStreamTime, () => {
-        isScheduled = false; // Сбрасываем флаг для возможности планирования нового стрима
-        currentOnlineUsers = 0; // Сбрасываем количество пользователей после окончания стрима
-        broadcastOnlineUsers(currentOnlineUsers); // Обновляем всех клиентов
+        const endStreamTime = new Date(startTime.getTime() + videoDuration);
+        schedule.scheduleJob(endStreamTime, () => {
+          isScheduled = false;
+        });
       });
-    });
+    }
 
-    // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
     clients.push(writer);
 
-    // Отправляем начальные данные
-    writer.write(`data: ${JSON.stringify({ onlineUsers: currentOnlineUsers })}\n\n`);
+    // Отправляем начальные данные с количеством подключенных клиентов
+    writer.write(`data: ${JSON.stringify({ onlineUsers: clients.length })}\n\n`);
 
     // Убираем клиента при закрытии соединения
     const onClose = () => {
       const index = clients.indexOf(writer);
       if (index !== -1) {
         clients.splice(index, 1);
+        // После отключения клиента обновляем информацию о подключенных клиентах
+        broadcastOnlineUsers(clients.length);
       }
     };
     writer.closed.then(onClose, onClose);
 
+    // Возвращаем поток для SSE
     return new NextResponse(readable, {
       headers: {
         'Content-Type': 'text/event-stream',
@@ -112,3 +112,5 @@ export async function GET() {
     client.release();
   }
 }
+
+

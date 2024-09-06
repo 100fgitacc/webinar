@@ -43,6 +43,7 @@ const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
   return (
     <div className={styles.container}>
       <form className={styles.form} onSubmit={handleSubmit}>
+      <p className={styles['popup-title']}>Для защиты от SPAM-комментариев заполните простую форму ниже</p>
         <label htmlFor="name">Имя:</label>
         <input
           type="text"
@@ -68,7 +69,7 @@ const UserLogin = ({ streamEndSeconds, unblockedChat }) => {
         {isLoading ? (
           <p>Авторизация...</p>
         ) : (
-          <button type="submit" className={styles.submitButton}>Войти</button>
+          <button type="submit" className={styles.submitButton}>Включить комментарии</button>
         )}
 
         {error && <p className={styles.error}>{error}</p>}

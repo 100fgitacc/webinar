@@ -44,7 +44,6 @@ const HomePage = () => {
         console.error('No streams data available');
         return;
       }
-      console.log(streamsData);
       
       const { start_date, video_duration, scenario_id, video_id, button_show_at } = streamsData;
   
@@ -198,9 +197,10 @@ const HomePage = () => {
         <div className={styles.container}>
           <div className={styles['player-container']}>
             <VimeoPlayer startStream={startStream} />
-            {startStream.button_show_at > startStream.video_duration && (
-              <Link className={styles.banner} href='https://www.google.com/' target="_blank">
-                <Image className={styles.icon} src='/assets/img/button.png' alt='icon' width={720} height={70} />
+            {startStream.button_show_at <= startStream.delayTime && (
+              <Link className={styles["banner-wrapper"]} href='https://4.100f.com/web-offer/?utm_source=efir' target="_blank">
+                <p className={styles.banner} >Забронировать место</p>
+                <span className={styles["banner-underlay"]}></span>
               </Link>
             )}
           </div>

@@ -11,3 +11,7 @@
     src: url('/assets/fonts/Wadik.otf') format('truetype'),
          url('/assets/fonts/Wadik.woff') format('woff');
 }
+@font-face {
+    font-family: 'Bicubik';
+    src: url('/assets/fonts/Bicubik.otf') format('truetype');
+}

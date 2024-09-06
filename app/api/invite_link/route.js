@@ -55,6 +55,5 @@ export async function GET(req) {
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
   } finally {
     client.release(); 
-    console.log('Соединение с базой данных закрыто');
   }
 }
