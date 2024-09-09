@@ -169,11 +169,11 @@
 }
 .chat-wrapper{
   padding: 10px 25px;
-  min-height: calc(var(--vh)* 45);
+  min-height: calc(var(--vh)* 50);
 }
 .chat-inner{
   margin-bottom: 15px;
-  max-height: calc(var(--vh)* 23);
+  max-height: calc(var(--vh)* 32);
 }
 
 .message {
@@ -192,7 +192,7 @@
     min-height: calc(var(--vh)* 42);
   }
   .chat-inner{
-    max-height: calc(var(--vh)* 29);
+    max-height: calc(var(--vh)* 36);
   }
 }
 @media  (max-width: 390px) and  (max-height: 844px)  {
@@ -205,9 +205,9 @@
 }
 @media (max-height: 800px) {
   .chat-wrapper{
-    min-height: calc(var(--vh)* 35);
+    min-height: calc(var(--vh)* 48);
   }
   .chat-inner{
-    max-height: calc(var(--vh)* 23);
+    max-height: calc(var(--vh)* 30);
   }
 }

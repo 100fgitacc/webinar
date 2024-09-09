@@ -174,13 +174,11 @@
   }
   .container {
     padding-top: 15px;
-    height: calc(var(--vh)* 76);
+    height: calc(var(--vh)* 90);
     margin-bottom: auto;
   }
   .main-title {
-    margin-top: 15px;
-    margin-bottom: 0;
-    font-size: 16px;
+   display: none;
   }
   .banner {
     font-size: 16px;

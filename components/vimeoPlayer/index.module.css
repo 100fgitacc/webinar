@@ -81,7 +81,7 @@
     border-radius: 15px;
     overflow: hidden;
     width: 100%;
-    height: calc(var(--vh) * 20);
+    height: calc(var(--vh) * 25);
     min-height: unset;
     background-color: #181A40;
   }

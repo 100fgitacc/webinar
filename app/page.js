@@ -84,9 +84,9 @@ const HomePage = () => {
   
         if (streamStatus !== 'ended') {
           updatedState.streamEndSeconds = streamEndSeconds;
-          startInternalTimer(startTime, button_show_at);
+          
         }
-  
+        startInternalTimer(startTime, button_show_at);
         return updatedState;
       });
   
@@ -189,11 +189,13 @@ const HomePage = () => {
     };
   }, []);
   const [showButton, setShowButton] = useState(false);
+
   const startInternalTimer = (startTime, buttonShowAt) => {
     const interval = setInterval(() => {
       const now = new Date();
       const elapsedTime = Math.max((now - startTime) / 1000, 0); 
-
+      console.log(elapsedTime >= buttonShowAt);
+      
       if (elapsedTime >= buttonShowAt) {
         setShowButton(true);
         clearInterval(interval);
