@@ -84,6 +84,7 @@ const HomePage = () => {
   
         if (streamStatus !== 'ended') {
           updatedState.streamEndSeconds = streamEndSeconds;
+          startInternalTimer(startTime, button_show_at);
         }
   
         return updatedState;
@@ -187,6 +188,19 @@ const HomePage = () => {
       window.removeEventListener('resize', setViewportHeight);
     };
   }, []);
+  const [showButton, setShowButton] = useState(false);
+  const startInternalTimer = (startTime, buttonShowAt) => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const elapsedTime = Math.max((now - startTime) / 1000, 0); 
+
+      if (elapsedTime >= buttonShowAt) {
+        setShowButton(true);
+        clearInterval(interval);
+      }
+    }, 1000);
+  };
+  
 
   return (
     <section className={styles.homePage}>
@@ -197,8 +211,8 @@ const HomePage = () => {
         <div className={styles.container}>
           <div className={styles['player-container']}>
             <VimeoPlayer startStream={startStream} />
-            {startStream.button_show_at <= startStream.delayTime && (
-              <Link className={styles["banner-wrapper"]} href='https://4.100f.com/web-offer/?utm_source=efir' target="_blank">
+            {showButton && (
+              <Link className={`${styles["banner-wrapper"]} ${showButton ? styles.show : ''}`} href='https://4.100f.com/web-offer/?utm_source=efir' target="_blank">
                 <p className={styles.banner} >Забронировать место</p>
                 <span className={styles["banner-underlay"]}></span>
               </Link>

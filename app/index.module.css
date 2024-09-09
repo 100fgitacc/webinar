@@ -63,7 +63,6 @@
 .copyright {
   opacity: 0.41;
   text-align: left;
-  margin-top: 105px;
   margin-bottom: 25px;
 }
 .banner-wrapper{
@@ -72,6 +71,10 @@
   margin-top: 20px;
   margin-bottom: 25px;
   cursor: pointer;
+  transition: opacity 1s ease-in-out;
+}
+.banner-wrapper.show {
+  opacity: 1; 
 }
 .banner {
   position: relative;
@@ -154,7 +157,6 @@
   }
   
   .copyright {
-      margin-top: 28px;
       margin-bottom: 26px;
   }
 }

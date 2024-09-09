@@ -27,11 +27,16 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
         
         if (data.messageId !== undefined && data.pinned !== undefined) {
           // Если пришло обновление статуса pinned
-          setVisibleMessages((prevMessages) =>
-            prevMessages.map((msg) =>
-              msg.id === data.messageId ? { ...msg, pinned: data.pinned } : msg
-            )
-          );
+          setVisibleMessages((prevMessages) => {
+            const messageExists = prevMessages.some((msg) => msg.id === data.messageId);
+            if (messageExists) {
+              return prevMessages.map((msg) =>
+                msg.id === data.messageId ? { ...msg, pinned: data.pinned } : msg
+              );
+            } else {
+              return [...prevMessages, data];
+            }
+          });
         } else if (data.messages && data.messages.length > 0) {
           // Если пришли новые сообщения
           setVisibleMessages((prevMessages) => [

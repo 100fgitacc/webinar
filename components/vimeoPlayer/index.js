@@ -25,7 +25,9 @@ const VimeoPlayer = ({ startStream }) => {
         width: playerWidth ,
         height:  playerWidth * (480 / 855), 
         controls: false,
+        keyboard: false,
         quality,
+        
       });
 
       setPlayer(newPlayer);
@@ -114,7 +116,9 @@ const VimeoPlayer = ({ startStream }) => {
           <>
             <div ref={playerRef} className={styles.player}>
               {!isPlayed && (
-                <button className={styles['play-btn']} onClick={handlePlayClick}></button>
+                <div className={styles['play-btn-container']} onClick={handlePlayClick}>
+                  <button className={styles['play-btn']} ></button>
+                </div>
               )}
               <div className={styles['quality-selector']}>
                 <label htmlFor="quality">Quality: </label>
