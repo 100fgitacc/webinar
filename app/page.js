@@ -221,9 +221,9 @@ const HomePage = () => {
             )}
           </div>
           <div className={styles['comments-container']}>
-            <h3 className={styles['comments-title']}>
+            {/* <h3 className={styles['comments-title']}>
               КОММЕНТАРИИ <span>({counter ? counter : 0})</span>
-            </h3>
+            </h3> */}
             <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} />
           </div>
         </div>
