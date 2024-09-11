@@ -87,7 +87,7 @@ export async function GET() {
             console.log('Все сообщения в таблице archived_messages.');
         
             // Логируем установку задачи на удаление через 1 час мин
-            const clearMessagesTime = new Date(Date.now() + 3600000);
+            const clearMessagesTime = new Date(Date.now() + 30000);
         
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
               const deleteClient = await pool.connect(); 
