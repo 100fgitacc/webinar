@@ -92,13 +92,19 @@ export async function GET() {
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
               const deleteClient = await pool.connect(); 
               try {
+                console.log('Начинаю удаление сообщений из таблицы messages...');
+                
                 const deleteQuery = 'DELETE FROM messages';
-                await deleteClient.query(deleteQuery);
-                await broadcastMessages([]);
+                const result = await deleteClient.query(deleteQuery);
+                
+                console.log(`Удалено строк: ${result.rowCount}`);
+                console.log('Все сообщения успешно удалены из таблицы messages.');
+                
+                await broadcastMessages([]);  // Сообщаем клиентам, что сообщения очищены
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {
-                deleteClient.release(); 
+                deleteClient.release();
               }
             });
         
