@@ -3,6 +3,7 @@ import schedule from 'node-schedule';
 import pool from '/app/connection'; 
 let isScheduled = false;
 let previousStartTime = null;
+let isVideoFinished = false;
 
 const clients = []; 
 
@@ -27,12 +28,13 @@ export async function GET() {
 
     if (previousStartTime !== startTime) {
       isScheduled = false;
+      isVideoFinished = false;
       previousStartTime = startTime; 
     }
 
     if (!isScheduled) {
       isScheduled = true;
-      
+
       const queryScenario = `
         SELECT scenario_text
         FROM scenario
@@ -72,42 +74,40 @@ export async function GET() {
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
+      
+      if (!isVideoFinished) {
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
           const taskClient = await pool.connect(); 
           try {
             const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
             const { rows: messages } = await taskClient.query(messagesQuery);
-        
+
             const saveQuery = `
               INSERT INTO archived_messages (messages)
               VALUES ($1)
             `;
             await taskClient.query(saveQuery, [JSON.stringify(messages)]);
-        
-            console.log('Все сообщения в таблице archived_messages.');
-        
-            // Логируем установку задачи на удаление через 1 час мин
-            const clearMessagesTime = new Date(Date.now() + 3600000);
-        
-            schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
+
+            schedule.scheduleJob('clearMessages', new Date(Date.now() + 3600000), async () => {
               const deleteClient = await pool.connect(); 
               try {
                 const deleteQuery = 'DELETE FROM messages';
                 await deleteClient.query(deleteQuery);
-                await broadcastMessages([]);
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {
                 deleteClient.release(); 
               }
             });
-        
+
           } catch (error) {
             console.error('Ошибка при сохранении сообщений в архив:', error);
           } finally {
             taskClient.release(); 
+            isVideoFinished = true;
           }
         });
+      }
     }
 
     
