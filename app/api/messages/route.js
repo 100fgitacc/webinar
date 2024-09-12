@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import schedule from 'node-schedule';
 import pool from '/app/connection'; 
+import { v4 as uuidv4 } from 'uuid';
 let isScheduled = false;
 let previousStartTime = null;
 
@@ -49,7 +50,7 @@ export async function GET() {
             const taskClient = await pool.connect(); 
             try {
               const message = {
-                id: Date.now(),
+                id: uuidv4(),
                 sender,
                 text,
                 sending_time: new Date().toISOString(),
@@ -72,6 +73,7 @@ export async function GET() {
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
+      if (!schedule.scheduledJobs['saveAndClearMessages']) {
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
           const taskClient = await pool.connect(); 
           try {
@@ -114,6 +116,9 @@ export async function GET() {
             taskClient.release(); 
           }
         });
+      } else {
+        console.log(`Задача уже запланирована для ${new Date(videoEndTime).toISOString()}, пропускаем`);
+      }
     }
 
     
