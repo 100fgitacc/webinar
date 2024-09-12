@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import schedule from 'node-schedule';
 import pool from '/app/connection'; 
-import { v4 as uuidv4 } from 'uuid';
 let isScheduled = false;
 let previousStartTime = null;
 
@@ -46,36 +45,33 @@ export async function GET() {
         const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
         
         if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
-          schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
-            const deleteClient = await pool.connect(); 
+          schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
+            const taskClient = await pool.connect(); 
             try {
-              const countQuery = 'SELECT COUNT(*) FROM messages';
-              const { rows: countBefore } = await deleteClient.query(countQuery);
-              console.log(`Количество строк до удаления: ${countBefore[0].count}`);
-          
-              const deleteQuery = 'DELETE FROM messages';
-              const result = await deleteClient.query(deleteQuery);
+              const message = {
+                id: Date.now(),
+                sender,
+                text,
+                sending_time: new Date().toISOString(),
+                pinned: pinned || false,
+                isadmin: isAdmin
+              };
               
-              console.log(`Удалено строк: ${result.rowCount}`);
-          
-              const { rows: countAfter } = await deleteClient.query(countQuery);
-              console.log(`Количество строк после удаления: ${countAfter[0].count}`);
-          
-              await broadcastMessages([]); 
+              await saveMessageToDb(message, taskClient);
+              broadcastMessages([message]);
             } catch (error) {
-              console.error('Ошибка при очистке таблицы сообщений:', error.message);
+              console.error('Ошибка во время выполнения запланированного задания:', error);
             } finally {
-              deleteClient.release();
+              taskClient.release(); 
             }
           });
         } 
-        else {
-          console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
-        }
+        // else {
+        //   console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
+        // }
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
-      if (!schedule.scheduledJobs['saveAndClearMessages']) {
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
           const taskClient = await pool.connect(); 
           try {
@@ -118,9 +114,6 @@ export async function GET() {
             taskClient.release(); 
           }
         });
-      } else {
-        console.log(`Задача уже запланирована для ${new Date(videoEndTime).toISOString()}, пропускаем`);
-      }
     }
 
     

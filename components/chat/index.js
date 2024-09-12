@@ -6,7 +6,6 @@ import withReactContent from 'sweetalert2-react-content'
 import UserLogin from '/components/login_popup';
 import { decodeJwt } from 'jose';
 import 'animate.css';
-import { v4 as uuidv4 } from 'uuid';
 const MySwal = withReactContent(Swal)
 
 const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndSeconds}) => {
@@ -87,7 +86,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       popupShow();    
     }else{
       const tempMessage = {
-        id: uuidv4(),
+        id: Date.now(),
         // sender: !isAdmin ? userName || currentName || name : 'Модератор',
         sender: userName || currentName || name,
         text: comment.replace(/\n/g, '\\n'),
