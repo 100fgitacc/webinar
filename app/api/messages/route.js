@@ -72,6 +72,7 @@ export async function GET() {
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
+      if (!schedule.scheduledJobs['saveAndClearMessages']) {
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
           const taskClient = await pool.connect(); 
           try {
@@ -86,10 +87,11 @@ export async function GET() {
         
             console.log('Все сообщения в таблице archived_messages.');
         
-            // Логируем установку задачи на удаление через 1 час мин
-            const clearMessagesTime = new Date(Date.now() + 30000);
-        
+            // Логируем установку задачи на удаление через 
+            const clearMessagesTime = new Date(Date.now() + 300000);
+            console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
+              console.log('Начинаю задачу по удалению сообщений');
               const deleteClient = await pool.connect(); 
               try {
                 console.log('Начинаю удаление сообщений из таблицы messages...');
@@ -100,7 +102,6 @@ export async function GET() {
                 console.log(`Удалено строк: ${result.rowCount}`);
                 console.log('Все сообщения успешно удалены из таблицы messages.');
                 
-                await broadcastMessages([]);  // Сообщаем клиентам, что сообщения очищены
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {
@@ -114,6 +115,9 @@ export async function GET() {
             taskClient.release(); 
           }
         });
+      } else {
+        console.log('Задача "saveAndClearMessages" уже существует, пропуск...');
+      }
     }
 
     
