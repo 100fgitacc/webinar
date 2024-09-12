@@ -46,30 +46,32 @@ export async function GET() {
         const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
         
         if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
-          schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
-            const taskClient = await pool.connect(); 
+          schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
+            const deleteClient = await pool.connect(); 
             try {
-              const message = {
-                id: uuidv4(),
-                sender,
-                text,
-                sending_time: new Date().toISOString(),
-                pinned: pinned || false,
-                isadmin: isAdmin
-              };
+              const countQuery = 'SELECT COUNT(*) FROM messages';
+              const { rows: countBefore } = await deleteClient.query(countQuery);
+              console.log(`Количество строк до удаления: ${countBefore[0].count}`);
+          
+              const deleteQuery = 'DELETE FROM messages';
+              const result = await deleteClient.query(deleteQuery);
               
-              await saveMessageToDb(message, taskClient);
-              broadcastMessages([message]);
+              console.log(`Удалено строк: ${result.rowCount}`);
+          
+              const { rows: countAfter } = await deleteClient.query(countQuery);
+              console.log(`Количество строк после удаления: ${countAfter[0].count}`);
+          
+              await broadcastMessages([]); 
             } catch (error) {
-              console.error('Ошибка во время выполнения запланированного задания:', error);
+              console.error('Ошибка при очистке таблицы сообщений:', error.message);
             } finally {
-              taskClient.release(); 
+              deleteClient.release();
             }
           });
         } 
-        // else {
-        //   console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
-        // }
+        else {
+          console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
+        }
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
