@@ -57,6 +57,9 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
     setStreamStatus(startStream.streamStatus);
   }, [player, startStream, quality, timings, streamStatus, currentDelay]);
+
+  console.log(currentDelay);
+  
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
       axios.post('/api/get_sales', { scenarioId: startStream.scenario_id })
@@ -78,14 +81,10 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      player.setCurrentTime(currentDelay).then(() => {
-        player.play().then(() => {
-          setIsPlayed(true);
-        }).catch((error) => {
-          console.error('Error starting playback:', error);
-        });
+      player.play().then(() => {
+        setIsPlayed(true);
       }).catch((error) => {
-        console.error('Error setting current time:', error);
+        console.error('Error starting playback:', error);
       });
     }
   };
@@ -150,13 +149,17 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   };
 
   useEffect(() => {
-  if (startStream.countdown === '00:00:00') {
-    const interval = setInterval(() => {
-      setCurrentDelay(prevDelay => prevDelay + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }
-}, [delayTime,startStream.countdown]);
+    if (currentDelay && startStream.countdown === '00:00:00') {
+      alert();
+      const interval = setInterval(() => {
+        setCurrentDelay(prevDelay => prevDelay + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }else{
+      setCurrentDelay(delayTime);
+    }
+  }, [startStream.countdown,delayTime]); 
+console.log(startStream.countdown);
 
   return (
     <div ref={containerRef} className={styles.player}>
