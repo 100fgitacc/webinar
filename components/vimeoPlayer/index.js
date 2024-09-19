@@ -16,8 +16,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
-  const [currentDelay, setCurrentDelay] = useState(delayTime ?? 0); 
-
 
   useEffect(() => {
     if (playerRef.current && !player) {
@@ -33,13 +31,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayer(newPlayer);
 
       newPlayer.on('loaded', () => {
-        // Лог перед установкой времени плеера после загрузки
-        console.log("Player loaded. Setting time to:", currentDelay);
-      
         if (streamStatus === 'inProgress' && startStream.startTime > 0) {
-          newPlayer.setCurrentTime(currentDelay).then(() => {
-            // Лог успешной установки времени после загрузки плеера
-            console.log("Successfully set time to:", currentDelay, "after player loaded");
+          newPlayer.setCurrentTime(delayTime).then(() => {
           }).catch((error) => {
             console.error('Error setting current time after player loaded:', error);
           });
@@ -62,7 +55,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       });
     }
     setStreamStatus(startStream.streamStatus);
-  }, [player, startStream, quality, timings, streamStatus, currentDelay]);
+  }, [player, startStream, quality, timings, streamStatus]);
 
   
   useEffect(() => {
@@ -86,16 +79,11 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      // Лог текущего значения задержки перед установкой времени
-      console.log("Setting player to time:", currentDelay);
-  
-      player.setCurrentTime(currentDelay).then(() => {
-        // Лог успешной установки времени
-        console.log("Successfully set time to:", currentDelay);
+      player.setCurrentTime(delayTime).then(() => {
+        console.log("Successfully set time to:", delayTime);
   
         player.play().then(() => {
-          // Лог успешного старта воспроизведения
-          console.log("Player is now playing from time:", currentDelay);
+          console.log("Player is now playing from time:", delayTime);
           setIsPlayed(true);
         }).catch((error) => {
           console.error('Error starting playback:', error);
@@ -103,6 +91,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       }).catch((error) => {
         console.error('Error setting current time:', error);
       });
+    } else {
+      console.error("Player instance not found.");
     }
   };
 
@@ -165,17 +155,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
   };
 
-  useEffect(() => {
-    if (startStream.countdown === '00:00:00') {
-      alert();
-      const interval = setInterval(() => {
-        setCurrentDelay(prevDelay => prevDelay + 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    }else{
-      setCurrentDelay(delayTime);
-    }
-  }, [startStream.countdown, delayTime]);
+ const [some, setSome] = useState(null);
+
 
   return (
     <div ref={containerRef} className={styles.player}>

@@ -71,8 +71,6 @@ const HomePage = () => {
       }
       
       
-      setDelayTime(Math.max((now - startTime) / 1000, 0))
-      
       setStartStream(prevState => {
         const updatedState = {
           ...prevState,
@@ -119,7 +117,17 @@ const HomePage = () => {
       console.error('Error initializing stream:', error);
     }
   };
+  useEffect(() => {
+    const now = new Date();
+    const initialDelay = Math.round(Math.max((now - startStream.startTime) / 1000, 0));
+    setDelayTime(initialDelay);
   
+    const interval = setInterval(() => {
+      setDelayTime((prevDelayTime) => prevDelayTime + 1);
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [startStream.startTime]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
