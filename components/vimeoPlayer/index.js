@@ -16,8 +16,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
-  // Используем значение delayTime с проверкой на null
-  const [currentDelay, setCurrentDelay] = useState(delayTime ?? 0); // Если delayTime = null, устанавливаем 0
+  const [currentDelay, setCurrentDelay] = useState(delayTime ?? 0); 
 
 
   useEffect(() => {
@@ -58,7 +57,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
     setStreamStatus(startStream.streamStatus);
   }, [player, startStream, quality, timings, streamStatus, currentDelay]);
-
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
       axios.post('/api/get_sales', { scenarioId: startStream.scenario_id })
@@ -80,10 +78,14 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      player.play().then(() => {
-        setIsPlayed(true);
+      player.setCurrentTime(currentDelay).then(() => {
+        player.play().then(() => {
+          setIsPlayed(true);
+        }).catch((error) => {
+          console.error('Error starting playback:', error);
+        });
       }).catch((error) => {
-        console.error('Error starting playback:', error);
+        console.error('Error setting current time:', error);
       });
     }
   };
@@ -148,15 +150,13 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   };
 
   useEffect(() => {
-    if (currentDelay) {
-      const interval = setInterval(() => {
-        setCurrentDelay(prevDelay => prevDelay + 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    }else{
-      setCurrentDelay(delayTime);
-    }
-  }, [delayTime]); 
+  if (startStream.countdown === '00:00:00') {
+    const interval = setInterval(() => {
+      setCurrentDelay(prevDelay => prevDelay + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }
+}, [delayTime,startStream.countdown]);
 
   return (
     <div ref={containerRef} className={styles.player}>
