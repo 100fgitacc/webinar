@@ -89,7 +89,7 @@ export async function GET() {
             ;
             await taskClient.query(saveQuery, [JSON.stringify(messages)]);
         
-            const clearMessagesTime = new Date(Date.now() + 5000);
+            const clearMessagesTime = new Date(Date.now() + 3600000);
             console.log('Очистка сообщений запланирована на:', clearMessagesTime);
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
               const deleteClient = await pool.connect(); 
