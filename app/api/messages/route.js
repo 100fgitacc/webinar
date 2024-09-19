@@ -9,15 +9,16 @@ const clients = [];
 export async function GET() {
   const client = await pool.connect();
   try {
-    const queryStream = `
-      SELECT id, start_date, scenario_id, video_duration
+    const queryStream = 
+     `SELECT id, start_date, scenario_id, video_duration
       FROM streams
       WHERE ended = false
-      ORDER BY start_date DESC
-      LIMIT 1;
-    `;
+      ORDER BY start_date ASC
+      LIMIT 1;`
+    ;
     const { rows: streamRows } = await client.query(queryStream);
-
+    console.log(streamRows);
+    
     const startTime = streamRows[0]?.start_date; 
     const scenarioId = streamRows[0]?.scenario_id;
     const videoDuration = streamRows[0]?.video_duration * 1000;
@@ -34,11 +35,11 @@ export async function GET() {
     if (!isScheduled) {
       isScheduled = true;
       
-      const queryScenario = `
-        SELECT scenario_text
+      const queryScenario = 
+       `SELECT scenario_text
         FROM scenario
-        WHERE id = $1
-      `;
+        WHERE id = $1` 
+      ;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
       const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
 
@@ -68,11 +69,13 @@ export async function GET() {
           });
         } 
         // else {
-        //   console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
+        //   console.log(Задание для сообщения "${text}" уже существует, пропуск...);
         // }
       });
       const streamId = streamRows[0]?.id;
-      const videoEndTime = new Date(startTime).getTime() + videoDuration;
+      const videoEndTime = new Date(new Date(startTime).getTime() + videoDuration);
+      
+      
       if (!schedule.scheduledJobs['saveAndClearMessages']) {
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
           const taskClient = await pool.connect(); 
@@ -82,24 +85,23 @@ export async function GET() {
         
             const saveQuery = `
               INSERT INTO archived_messages (messages)
-              VALUES ($1)
-            `;
+              VALUES ($1)`
+            ;
             await taskClient.query(saveQuery, [JSON.stringify(messages)]);
         
-            // Логируем установку задачи на удаление через 3 мин
-            const clearMessagesTime = new Date(Date.now() + 180000);
+            const clearMessagesTime = new Date(Date.now() + 5000);
+            console.log('Очистка сообщений запланирована на:', clearMessagesTime);
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
               const deleteClient = await pool.connect(); 
               try {
                 const deleteQuery = 'DELETE FROM messages';
                 const result = await deleteClient.query(deleteQuery);
-                
                 console.log(`Удалено строк: ${result.rowCount}`);
-                const updateStreamQuery = `
-                  UPDATE streams
+                const updateStreamQuery = 
+                  `UPDATE streams
                   SET ended = true
-                  WHERE id = $1
-                `;
+                  WHERE id = $1`
+                ;
                 await deleteClient.query(updateStreamQuery, [streamId]);
                 console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
                 isScheduled = false;
@@ -117,6 +119,8 @@ export async function GET() {
             taskClient.release(); 
           }
         });
+        const job = schedule.scheduledJobs['saveAndClearMessages'];
+        console.log('Задача запланирована на:', job.nextInvocation().toString());
       } else {
         console.log('Задача "saveAndClearMessages" уже существует, пропуск...');
       }

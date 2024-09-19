@@ -27,7 +27,6 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
         if (data.streamEnded) {
           setVisibleMessages([]);
           setStreamEnded(true);
-          console.log('Стрим завершён');
           return;
         }
         if (data.messageId !== undefined && data.pinned !== undefined) {

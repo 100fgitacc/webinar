@@ -204,10 +204,31 @@ const HomePage = () => {
     }, 1000);
   };
 
+  const [refreshStreamData, setRefreshStreamData] = useState(null);
+
   const handleRefreshStreamData = (e) =>{
-    console.log(e);
+    setRefreshStreamData(e);
   }
   
+  useEffect(() => {
+    if (refreshStreamData === true) {
+      console.log('Обновление данных о стриме');
+      initializeStream(); 
+      setRefreshStreamData(false);
+      const eventSource = new EventSource('/api/messages');
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+        } catch (error) {
+          console.error('Ошибка при обработке сообщений SSE:', error);
+        }
+      };
+    
+      return () => {
+        eventSource.close();
+      };
+    }
+  }, [refreshStreamData]);
 
   return (
     <section className={styles.homePage}>

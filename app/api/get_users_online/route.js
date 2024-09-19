@@ -51,7 +51,7 @@ export async function GET() {
 
     // Проверяем, изменилась ли дата планирования
     if (isScheduled && currentStreamDate && currentStreamDate.getTime() === startTime.getTime()) {
-      console.log("Задача уже запланирована для этой даты, пропускаем новое планирование.");
+      // console.log("Задача уже запланирована для этой даты, пропускаем новое планирование.");
     } else {
       schedule.gracefulShutdown().then(() => {
         currentOnlineUsers = 0;
