@@ -33,9 +33,15 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayer(newPlayer);
 
       newPlayer.on('loaded', () => {
+        // Лог перед установкой времени плеера после загрузки
+        console.log("Player loaded. Setting time to:", currentDelay);
+      
         if (streamStatus === 'inProgress' && startStream.startTime > 0) {
-          newPlayer.setCurrentTime(currentDelay).catch((error) => {
-            console.error('Error setting current time:', error);
+          newPlayer.setCurrentTime(currentDelay).then(() => {
+            // Лог успешной установки времени после загрузки плеера
+            console.log("Successfully set time to:", currentDelay, "after player loaded");
+          }).catch((error) => {
+            console.error('Error setting current time after player loaded:', error);
           });
         }
       });
@@ -58,7 +64,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     setStreamStatus(startStream.streamStatus);
   }, [player, startStream, quality, timings, streamStatus, currentDelay]);
 
-  console.log(currentDelay);
   
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
@@ -81,10 +86,22 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      player.play().then(() => {
-        setIsPlayed(true);
+      // Лог текущего значения задержки перед установкой времени
+      console.log("Setting player to time:", currentDelay);
+  
+      player.setCurrentTime(currentDelay).then(() => {
+        // Лог успешной установки времени
+        console.log("Successfully set time to:", currentDelay);
+  
+        player.play().then(() => {
+          // Лог успешного старта воспроизведения
+          console.log("Player is now playing from time:", currentDelay);
+          setIsPlayed(true);
+        }).catch((error) => {
+          console.error('Error starting playback:', error);
+        });
       }).catch((error) => {
-        console.error('Error starting playback:', error);
+        console.error('Error setting current time:', error);
       });
     }
   };
@@ -149,7 +166,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   };
 
   useEffect(() => {
-    if (currentDelay && startStream.countdown === '00:00:00') {
+    if (startStream.countdown === '00:00:00') {
       alert();
       const interval = setInterval(() => {
         setCurrentDelay(prevDelay => prevDelay + 1);
@@ -158,8 +175,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }else{
       setCurrentDelay(delayTime);
     }
-  }, [startStream.countdown,delayTime]); 
-console.log(startStream.countdown);
+  }, [startStream.countdown, delayTime]);
 
   return (
     <div ref={containerRef} className={styles.player}>
