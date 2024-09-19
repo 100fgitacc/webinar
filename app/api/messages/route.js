@@ -10,10 +10,11 @@ export async function GET() {
   const client = await pool.connect();
   try {
     const queryStream = `
-      SELECT start_date, scenario_id, video_duration
+      SELECT id, start_date, scenario_id, video_duration
       FROM streams
+      WHERE ended = false
       ORDER BY start_date DESC
-      LIMIT 1
+      LIMIT 1;
     `;
     const { rows: streamRows } = await client.query(queryStream);
 
@@ -70,7 +71,7 @@ export async function GET() {
         //   console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
         // }
       });
-
+      const streamId = streamRows[0]?.id;
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
       if (!schedule.scheduledJobs['saveAndClearMessages']) {
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
@@ -85,23 +86,24 @@ export async function GET() {
             `;
             await taskClient.query(saveQuery, [JSON.stringify(messages)]);
         
-            console.log('Все сообщения в таблице archived_messages.');
-        
-            // Логируем установку задачи на удаление через 
-            const clearMessagesTime = new Date(Date.now() + 300000);
-            console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
+            // Логируем установку задачи на удаление через 3 мин
+            const clearMessagesTime = new Date(Date.now() + 180000);
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
-              console.log('Начинаю задачу по удалению сообщений');
               const deleteClient = await pool.connect(); 
               try {
-                console.log('Начинаю удаление сообщений из таблицы messages...');
-                
                 const deleteQuery = 'DELETE FROM messages';
                 const result = await deleteClient.query(deleteQuery);
                 
                 console.log(`Удалено строк: ${result.rowCount}`);
-                console.log('Все сообщения успешно удалены из таблицы messages.');
-                
+                const updateStreamQuery = `
+                  UPDATE streams
+                  SET ended = true
+                  WHERE id = $1
+                `;
+                await deleteClient.query(updateStreamQuery, [streamId]);
+                console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
+                isScheduled = false;
+                broadcastMessages([], null, true);
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {
@@ -203,7 +205,7 @@ async function updateAndBroadcastPinnedStatus(messageId, pinned) {
     console.error('Ошибка при обновлении и трансляции статуса закрепленного сообщения:', error);
   }
 }
-async function broadcastMessages(newMessages = [], excludeSender) {
+async function broadcastMessages(newMessages = [], excludeSender, streamEnded = false) {
   try {
     const messagePayload = {
       messages: excludeSender
@@ -212,7 +214,8 @@ async function broadcastMessages(newMessages = [], excludeSender) {
             ...msg,
             id: msg.id.toString() 
           })),
-      clientsCount: clients.length
+      clientsCount: clients.length,
+      streamEnded
     };
     const messageData = `data: ${JSON.stringify(messagePayload)}\n\n`;
 

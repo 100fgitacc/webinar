@@ -8,7 +8,7 @@ import { decodeJwt } from 'jose';
 import 'animate.css';
 const MySwal = withReactContent(Swal)
 
-const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndSeconds}) => {
+const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndSeconds, setStreamEnded}) => {
  
   const [currentName, setCurrentName] = useState('');
   const [comment, setComment] = useState('');
@@ -24,7 +24,12 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+        if (data.streamEnded) {
+          setVisibleMessages([]);
+          setStreamEnded(true);
+          console.log('Стрим завершён');
+          return;
+        }
         if (data.messageId !== undefined && data.pinned !== undefined) {
           // Если пришло обновление статуса pinned
           setVisibleMessages((prevMessages) => {

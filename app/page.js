@@ -27,6 +27,8 @@ const HomePage = () => {
     try {
       const response = await axios.get('/api/streams', { headers: { 'Cache-Control': 'no-cache' } });
       const newData = response.data;
+      console.log(newData);
+      
       const { start_date, video_duration, scenario_id, video_id, button_show_at} = newData;
       
       return { start_date, video_duration, scenario_id, video_id, button_show_at };
@@ -194,7 +196,6 @@ const HomePage = () => {
     const interval = setInterval(() => {
       const now = new Date();
       const elapsedTime = Math.max((now - startTime) / 1000, 0); 
-      console.log(elapsedTime >= buttonShowAt);
       
       if (elapsedTime >= buttonShowAt) {
         setShowButton(true);
@@ -202,6 +203,10 @@ const HomePage = () => {
       }
     }, 1000);
   };
+
+  const handleRefreshStreamData = (e) =>{
+    console.log(e);
+  }
   
 
   return (
@@ -224,7 +229,7 @@ const HomePage = () => {
             {/* <h3 className={styles['comments-title']}>
               КОММЕНТАРИИ <span>({counter ? counter : 0})</span>
             </h3> */}
-            <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} />
+            <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} setStreamEnded={handleRefreshStreamData}/>
           </div>
         </div>
         {windowWidth >= 525 &&

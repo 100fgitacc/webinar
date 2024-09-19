@@ -12,7 +12,7 @@ export async function GET() {
       LIMIT 1
     `;
     const { rows } = await client.query(query);
-    
+
     return NextResponse.json(rows[0] || {});
   } catch (error) {
     console.error('Ошибка при получении данных:', error);
