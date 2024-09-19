@@ -63,6 +63,8 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log(data.onlineUsers);
+        
         setClientsCount(data.onlineUsers);
       } catch (error) {
         console.error('Ошибка при обработке сообщений SSE:', error);

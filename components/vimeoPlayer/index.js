@@ -3,7 +3,7 @@ import Player from '@vimeo/player';
 import styles from './index.module.css';
 import axios from 'axios';
 
-const VimeoPlayer = ({ startStream }) => {
+const VimeoPlayer = ({ startStream, delayTime }) => {
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const [player, setPlayer] = useState(null);
@@ -12,29 +12,30 @@ const VimeoPlayer = ({ startStream }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [streamStatus, setStreamStatus] = useState(null);
   const [playerWidth, setPlayerWidth] = useState(null);
-
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
+  // Используем значение delayTime с проверкой на null
+  const [currentDelay, setCurrentDelay] = useState(delayTime ?? 0); // Если delayTime = null, устанавливаем 0
+
+
   useEffect(() => {
-    
     if (playerRef.current && !player) {
       const newPlayer = new Player(playerRef.current, {
         id: startStream.video_id,
-        width: playerWidth ,
-        height:  playerWidth * (480 / 855), 
+        width: playerWidth,
+        height: playerWidth * (480 / 855),
         controls: false,
         keyboard: false,
         quality,
-        
       });
 
       setPlayer(newPlayer);
 
       newPlayer.on('loaded', () => {
         if (streamStatus === 'inProgress' && startStream.startTime > 0) {
-          newPlayer.setCurrentTime(startStream.delayTime).catch((error) => {
+          newPlayer.setCurrentTime(currentDelay).catch((error) => {
             console.error('Error setting current time:', error);
           });
         }
@@ -56,7 +57,7 @@ const VimeoPlayer = ({ startStream }) => {
       });
     }
     setStreamStatus(startStream.streamStatus);
-  }, [player, startStream, quality, timings, streamStatus]);
+  }, [player, startStream, quality, timings, streamStatus, currentDelay]);
 
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
@@ -97,12 +98,14 @@ const VimeoPlayer = ({ startStream }) => {
       });
     }
   };
+
   useEffect(() => {
     if (containerRef.current) {
       const width = containerRef.current.offsetWidth;
       setPlayerWidth(width); 
     }
   }, [playerRef]);
+
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
@@ -143,6 +146,17 @@ const VimeoPlayer = ({ startStream }) => {
         return <div className={styles['stream-end']}></div>;
     }
   };
+
+  useEffect(() => {
+    if (currentDelay) {
+      const interval = setInterval(() => {
+        setCurrentDelay(prevDelay => prevDelay + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }else{
+      setCurrentDelay(delayTime);
+    }
+  }, [delayTime]); 
 
   return (
     <div ref={containerRef} className={styles.player}>

@@ -13,7 +13,6 @@ import Image from 'next/image';
 const HomePage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [startStream, setStartStream] = useState({
-    delayTime: null,
     startTime: null,
     streamStatus: '',
     countdown: null,
@@ -27,7 +26,6 @@ const HomePage = () => {
     try {
       const response = await axios.get('/api/streams', { headers: { 'Cache-Control': 'no-cache' } });
       const newData = response.data;
-      console.log(newData);
       
       const { start_date, video_duration, scenario_id, video_id, button_show_at} = newData;
       
@@ -38,6 +36,7 @@ const HomePage = () => {
     }
   };
 
+  const [delayTime, setDelayTime] = useState(null);
   const initializeStream = async () => {
     try {
       const streamsData = await getStreamData();
@@ -71,12 +70,12 @@ const HomePage = () => {
         streamStatus = 'inProgress';
       }
       
-      const delayTime = Math.max((now - startTime) / 1000, 0);
-  
+      
+      setDelayTime(Math.max((now - startTime) / 1000, 0))
+      
       setStartStream(prevState => {
         const updatedState = {
           ...prevState,
-          delayTime,
           startTime,
           streamStatus,
           scenario_id,
@@ -212,7 +211,6 @@ const HomePage = () => {
   
   useEffect(() => {
     if (refreshStreamData === true) {
-      console.log('Обновление данных о стриме');
       initializeStream(); 
       setRefreshStreamData(false);
       const eventSource = new EventSource('/api/messages');
@@ -238,7 +236,7 @@ const HomePage = () => {
           </h1>
         <div className={styles.container}>
           <div className={styles['player-container']}>
-            <VimeoPlayer startStream={startStream} />
+            <VimeoPlayer startStream={startStream} delayTime={delayTime} />
             {showButton && (
               <Link className={`${styles["banner-wrapper"]} ${showButton ? styles.show : ''}`} href='https://4.100f.com/web-offer/?utm_source=efir' target="_blank">
                 <p className={styles.banner} >Забронировать место</p>
