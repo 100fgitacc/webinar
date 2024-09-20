@@ -1,25 +1,49 @@
 import { NextResponse } from 'next/server';
-import schedule from 'node-schedule';
+import { CronJob } from 'cron'; // Используем библиотеку cron
 import pool from '/app/connection'; 
+
 let isScheduled = false;
 let previousStartTime = null;
+const clients = [];
 
-const clients = []; 
+// Функция для выполнения задачи
+async function taskToExecute(message, taskClient) {
+  try {
+    await saveMessageToDb(message, taskClient);
+    console.log('Сообщение сохранено в базе данных');
+    
+    broadcastMessages([message]); // Отправляем сообщение всем клиентам
+    console.log('Сообщение отправлено всем клиентам');
+  } catch (error) {
+    console.error('Ошибка во время выполнения запланированного задания:', error);
+  } finally {
+    taskClient.release();
+  }
+}
 
 export async function GET() {
   const client = await pool.connect();
   try {
-    const queryStream = 
-     `SELECT id, start_date, scenario_id, video_duration
-      FROM streams
-      WHERE ended = false
-      ORDER BY start_date ASC
-      LIMIT 1;`
-    ;
-    const { rows: streamRows } = await client.query(queryStream);
-    console.log(streamRows);
+    console.log('Подключение к базе данных установлено');
     
-    const startTime = streamRows[0]?.start_date; 
+    const queryStream = `
+     SELECT id, start_date, scenario_id, video_duration
+     FROM streams
+     WHERE ended = false
+     ORDER BY start_date ASC
+     LIMIT 1;
+    `;
+    console.log('Отправляем запрос к базе данных для получения текущего стрима');
+    
+    const { rows: streamRows } = await client.query(queryStream);
+    console.log('Результат запроса:', streamRows);
+
+    if (!streamRows.length) {
+      console.log('Нет активных стримов в базе данных');
+      return NextResponse.json({ error: 'Нет активных стримов' }, { status: 404 });
+    }
+    
+    const startTime = streamRows[0]?.start_date;
     const scenarioId = streamRows[0]?.scenario_id;
     const videoDuration = streamRows[0]?.video_duration * 1000;
 
@@ -28,115 +52,122 @@ export async function GET() {
     }
 
     if (previousStartTime !== startTime) {
+      console.log('Новый стрим, сбрасываем планирование');
       isScheduled = false;
       previousStartTime = startTime; 
     }
 
     if (!isScheduled) {
       isScheduled = true;
+      console.log('Запланировано новое задание для стрима');
+
+      const queryScenario = `
+       SELECT scenario_text
+       FROM scenario
+       WHERE id = $1
+      `;
+      console.log('Запрашиваем сценарий для scenarioId:', scenarioId);
       
-      const queryScenario = 
-       `SELECT scenario_text
-        FROM scenario
-        WHERE id = $1` 
-      ;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+
       const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
 
       commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
         const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
-        
-        if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
-          schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
-            const taskClient = await pool.connect(); 
-            try {
-              const message = {
-                id: Date.now(),
-                sender,
-                text,
-                sending_time: new Date().toISOString(),
-                pinned: pinned || false,
-                isadmin: isAdmin
-              };
-              
-              await saveMessageToDb(message, taskClient);
-              broadcastMessages([message]);
-            } catch (error) {
-              console.error('Ошибка во время выполнения запланированного задания:', error);
-            } finally {
-              taskClient.release(); 
-            }
-          });
-        } 
-        // else {
-        //   console.log(Задание для сообщения "${text}" уже существует, пропуск...);
-        // }
+        const scheduleDate = new Date(scheduleTime);
+
+        // Формируем cron-выражение для сообщения
+        const cronExpression = `${scheduleDate.getSeconds()} ${scheduleDate.getMinutes()} ${scheduleDate.getHours()} ${scheduleDate.getDate()} ${scheduleDate.getMonth() + 1} *`;
+
+        // Используем CronJob для выполнения задачи
+        new CronJob(cronExpression, async () => {
+          const taskClient = await pool.connect(); 
+          const message = {
+            id: Date.now(),
+            sender,
+            text,
+            sending_time: new Date().toISOString(),
+            pinned: pinned || false,
+            isadmin: isAdmin
+          };
+          await taskToExecute(message, taskClient);
+        }, null, true).start();
       });
+
       const streamId = streamRows[0]?.id;
       const videoEndTime = new Date(new Date(startTime).getTime() + videoDuration);
       
-      
-      if (!schedule.scheduledJobs['saveAndClearMessages']) {
-        schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
-          const taskClient = await pool.connect(); 
-          try {
-            const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
-            const { rows: messages } = await taskClient.query(messagesQuery);
+      console.log(`Запланирована задача на сохранение и очистку сообщений на: ${videoEndTime.toISOString()}`);
+
+      // Планируем завершение стрима и очистку сообщений
+      new CronJob(videoEndTime, async () => {
+        console.log('Задача на сохранение и очистку сообщений запущена');
         
-            const saveQuery = `
-              INSERT INTO archived_messages (messages)
-              VALUES ($1)`
-            ;
-            await taskClient.query(saveQuery, [JSON.stringify(messages)]);
-        
-            const clearMessagesTime = new Date(Date.now() + 3600000);
-            console.log('Очистка сообщений запланирована на:', clearMessagesTime);
-            schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
-              const deleteClient = await pool.connect(); 
-              try {
-                const deleteQuery = 'DELETE FROM messages';
-                const result = await deleteClient.query(deleteQuery);
-                console.log(`Удалено строк: ${result.rowCount}`);
-                const updateStreamQuery = 
-                  `UPDATE streams
-                  SET ended = true
-                  WHERE id = $1`
-                ;
-                await deleteClient.query(updateStreamQuery, [streamId]);
-                console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
-                isScheduled = false;
-                broadcastMessages([], null, true);
-              } catch (error) {
-                console.error('Ошибка при очистке таблицы сообщений:', error);
-              } finally {
-                deleteClient.release();
-              }
-            });
-        
-          } catch (error) {
-            console.error('Ошибка при сохранении сообщений в архив:', error);
-          } finally {
-            taskClient.release(); 
-          }
-        });
-        const job = schedule.scheduledJobs['saveAndClearMessages'];
-        console.log('Задача запланирована на:', job.nextInvocation().toString());
-      } else {
-        console.log('Задача "saveAndClearMessages" уже существует, пропуск...');
-      }
+        const taskClient = await pool.connect();
+        try {
+          const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
+          const { rows: messages } = await taskClient.query(messagesQuery);
+          console.log(`Сообщений для архивации: ${messages.length}`);
+          
+          const saveQuery = `INSERT INTO archived_messages (messages) VALUES ($1)`;
+          await taskClient.query(saveQuery, [JSON.stringify(messages)]);
+          console.log('Сообщения успешно сохранены в архив');
+          
+          // Планируем очистку сообщений через 5 секунд
+          const clearMessagesTime = new Date(Date.now() + 5000);
+          console.log(`Очистка сообщений запланирована на: ${clearMessagesTime.toISOString()}`);
+
+          new CronJob(clearMessagesTime, async () => {
+            console.log('Очистка сообщений начата');
+            const deleteClient = await pool.connect();
+            try {
+              const deleteQuery = 'DELETE FROM messages';
+              const result = await deleteClient.query(deleteQuery);
+              console.log(`Сообщения удалены. Количество удаленных строк: ${result.rowCount}`);
+
+              const updateStreamQuery = `UPDATE streams SET ended = true WHERE id = $1`;
+              await deleteClient.query(updateStreamQuery, [streamId]);
+
+              console.log(`Стрим с ID ${streamId} завершён и сообщения удалены`);
+
+              // Добавляем логирование перед вызовом broadcastMessages
+              console.log('Выполняем broadcastMessages([], null, true)');
+
+              broadcastMessages([], null, true); // Проблемная часть
+
+              console.log('Завершение broadcastMessages, сбрасываем isScheduled в false');
+              isScheduled = false;
+            } catch (error) {
+              console.error('Ошибка при очистке таблицы сообщений:', error);
+            } finally {
+              deleteClient.release();
+              console.log('Соединение для удаления сообщений закрыто');
+            }
+          }, null, true).start();
+          
+        } catch (error) {
+          console.error('Ошибка при сохранении сообщений в архив:', error);
+        } finally {
+          taskClient.release();
+          console.log('Соединение для архивации сообщений закрыто');
+        }
+      }, null, true).start();
+    } else {
+      console.log('Задача уже запланирована, пропуск...');
     }
 
-    
+    // Работа с потоками данных
+    console.log('Настраиваем поток данных');
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
-
     clients.push(writer);
     const currentMessages = await loadMessagesFromDb();
     writer.write(`data: ${JSON.stringify({ messages: currentMessages, clientsCount: clients.length })}\n\n`);
 
     const onClose = () => {
+      console.log('Закрытие соединения');
       clients.splice(clients.indexOf(writer), 1);
-      broadcastMessages(); 
+      broadcastMessages();
     };
     writer.closed.then(onClose, onClose);
 
@@ -148,11 +179,14 @@ export async function GET() {
       },
     });
 
+    console.log('Запрос успешно завершен');
     return response;
   } catch (error) {
+    console.error('Ошибка при запуске потока:', error);
     return NextResponse.json({ error: 'Ошибка при запуске потока' }, { status: 500 });
   } finally {
     client.release();
+    console.log('Соединение с базой данных закрыто');
   }
 }
 

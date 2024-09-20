@@ -49,11 +49,11 @@ export async function GET() {
     const scenarioOnline = scenarioRows[0]?.scenario_online || [];
 
     // Останавливаем все запланированные задачи, если они есть
-    console.log('Остановка предыдущего планирования');
+    // console.log('Остановка предыдущего планирования');
     schedule.gracefulShutdown().then(() => {
       currentOnlineUsers = 0;
       isScheduled = false;
-      console.log('Задачи сброшены, перепланируем новое расписание');
+      // console.log('Задачи сброшены, перепланируем новое расписание');
 
       // Перепланировка задач сразу же
       scenarioOnline.forEach(({ showAt, count }) => {

@@ -69,6 +69,7 @@ const HomePage = () => {
       } else {
         streamStatus = 'inProgress';
       }
+      console.log(streamStatus);
       
       
       setStartStream(prevState => {
@@ -117,6 +118,7 @@ const HomePage = () => {
       console.error('Error initializing stream:', error);
     }
   };
+  
   useEffect(() => {
     const now = new Date();
     const initialDelay = Math.round(Math.max((now - startStream.startTime) / 1000, 0));
@@ -220,11 +222,12 @@ const HomePage = () => {
   useEffect(() => {
     if (refreshStreamData === true) {
       initializeStream(); 
-      setRefreshStreamData(false);
+      
       const eventSource = new EventSource('/api/messages');
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          
         } catch (error) {
           console.error('Ошибка при обработке сообщений SSE:', error);
         }
@@ -234,6 +237,7 @@ const HomePage = () => {
         eventSource.close();
       };
     }
+    setRefreshStreamData(false);
   }, [refreshStreamData]);
 
   return (

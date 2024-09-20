@@ -16,9 +16,10 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
-
+  // Инициализация плеера
   useEffect(() => {
     if (playerRef.current && !player) {
+      console.log('Инициализация нового плеера...');
       const newPlayer = new Player(playerRef.current, {
         id: startStream.video_id,
         width: playerWidth,
@@ -27,39 +28,76 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         keyboard: false,
         quality,
       });
-
+  
       setPlayer(newPlayer);
-
+  
       newPlayer.on('loaded', () => {
-        if (streamStatus === 'inProgress' && startStream.startTime > 0) {
+        console.log('Плеер загружен');
+        if (streamStatus === 'inProgress') {
           newPlayer.setCurrentTime(delayTime).then(() => {
+            console.log('Текущее время плеера установлено:', delayTime);
           }).catch((error) => {
-            console.error('Error setting current time after player loaded:', error);
+            console.error('Ошибка при установке времени плеера после загрузки:', error);
           });
         }
       });
-
-      newPlayer.on('timeupdate', ({ seconds }) => {
-        if (timings.includes(Math.round(seconds))) {
-          setShowPopup(true);
-          setTimeout(() => setShowPopup(false), 3000);
-        }
-      });
-
+  
+      // Событие окончания видео
       newPlayer.on('ended', () => {
-        setStreamStatus('ended');
+        console.log('Видео завершено, обновляем статус на ended');
+        setStreamStatus((prevStatus) => {
+          console.log('Предыдущее состояние:', prevStatus);
+          
+          if (typeof prevStatus !== 'object') {
+            console.error('Ошибка: предыдущий статус не является объектом');
+            return { ...startStream, streamStatus: 'ended' };
+          }
+  
+          return {
+            ...prevStatus,
+            streamStatus: 'ended'
+          };
+        });
       });
-
+  
       newPlayer.on('error', (error) => {
-        console.error('Vimeo player error:', error);
+        console.error('Ошибка Vimeo плеера:', error);
       });
     }
-    setStreamStatus(startStream.streamStatus);
-  }, [player, startStream, quality, timings, streamStatus]);
-
   
+    console.log('Текущий статус потока:', streamStatus);
+  
+    // Обновляем плеер при изменении streamStatus
+    setStreamStatus(startStream.streamStatus);
+  
+  }, [player, startStream, quality, streamStatus]);
+
+  // Этот useEffect отвечает за воспроизведение и остановку в зависимости от статуса
+  useEffect(() => {
+    if (player && streamStatus === 'inProgress' && !isPlayed) {
+      console.log('Стрим в процессе, воспроизведение...');
+      player.play().then(() => {
+        setIsPlayed(true);
+        console.log('Воспроизведение начато.');
+      }).catch((error) => {
+        console.error('Ошибка при воспроизведении плеера:', error);
+      });
+    }
+
+    if (player && streamStatus === 'ended') {
+      console.log('Стрим завершён, останавливаем воспроизведение...');
+      player.pause().then(() => {
+        setIsPlayed(false);
+      }).catch((error) => {
+        console.error('Ошибка при паузе плеера:', error);
+      });
+    }
+  }, [player, streamStatus, isPlayed]);
+
+  // Запрос данных по сценарию
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
+      console.log('Выполняем запрос на получение сценария...');
       axios.post('/api/get_sales', { scenarioId: startStream.scenario_id })
         .then(response => {
           const { scenario_sales } = response.data;
@@ -67,6 +105,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
             const { showAt, text } = scenario_sales[0];
             setTimings(showAt);
             setMessage(text);
+            console.log('Сценарий получен:', scenario_sales);
           }
           setDataFetched(true); 
         })
@@ -77,40 +116,46 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
   }, [startStream, dataFetched]);
 
+  // Обработка нажатия на кнопку play
   const handlePlayClick = () => {
     if (player) {
       player.setCurrentTime(delayTime).then(() => {
-        console.log("Successfully set time to:", delayTime);
+        console.log("Успешно установлено время:", delayTime);
   
         player.play().then(() => {
-          console.log("Player is now playing from time:", delayTime);
+          console.log("Плеер начал воспроизведение с времени:", delayTime);
           setIsPlayed(true);
         }).catch((error) => {
-          console.error('Error starting playback:', error);
+          console.error('Ошибка при запуске воспроизведения:', error);
         });
       }).catch((error) => {
-        console.error('Error setting current time:', error);
+        console.error('Ошибка при установке текущего времени:', error);
       });
     } else {
-      console.error("Player instance not found.");
+      console.error("Экземпляр плеера не найден.");
     }
   };
 
+  // Обработка изменения качества
   const handleQualityChange = (event) => {
     const selectedQuality = event.target.value;
+    console.log('Изменение качества на:', selectedQuality);
     if (player) {
       player.setQuality(selectedQuality).then(() => {
         setQuality(selectedQuality);
+        console.log('Качество изменено на:', selectedQuality);
       }).catch((error) => {
-        console.error('Error changing quality:', error);
+        console.error('Ошибка при изменении качества:', error);
       });
     }
   };
 
+  // Установка размеров плеера
   useEffect(() => {
     if (containerRef.current) {
       const width = containerRef.current.offsetWidth;
       setPlayerWidth(width); 
+      console.log('Ширина плеера установлена:', width);
     }
   }, [playerRef]);
 
@@ -154,9 +199,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         return <div className={styles['stream-end']}></div>;
     }
   };
-
- const [some, setSome] = useState(null);
-
 
   return (
     <div ref={containerRef} className={styles.player}>
