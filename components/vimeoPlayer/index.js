@@ -16,7 +16,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
-  
+  console.log(delayTime);
   useEffect(() => {
     
     if (playerRef.current && !player) {
@@ -31,7 +31,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       });
 
       setPlayer(newPlayer);
-console.log(delayTime);
+
 
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
