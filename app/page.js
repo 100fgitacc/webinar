@@ -69,9 +69,11 @@ const HomePage = () => {
       } else {
         streamStatus = 'inProgress';
       }
-      console.log(streamStatus);
-      
-      
+  
+      const clientTimeAtStart = Date.now();
+      const serverTimeAtStart = new Date(serverTime).getTime();
+      const timeDifference = clientTimeAtStart - serverTimeAtStart;
+  
       setStartStream(prevState => {
         const updatedState = {
           ...prevState,
@@ -80,12 +82,12 @@ const HomePage = () => {
           scenario_id,
           video_id,
           button_show_at,
-          serverTime
+          serverTime,
+          timeDifference,  
         };
   
         if (streamStatus !== 'ended') {
           updatedState.streamEndSeconds = streamEndSeconds;
-          
         }
         startInternalTimer(startTime, button_show_at);
         return updatedState;
@@ -93,10 +95,10 @@ const HomePage = () => {
   
       if (streamStatus === 'notStarted') {
         const interval = setInterval(() => {
-          const now = new Date(serverTime);
-          const timeDifference = startTime - now;
+          const now = Date.now() - timeDifference;  
+          const timeDifferenceFromStart = startTime - now;
   
-          if (timeDifference <= 0) {
+          if (timeDifferenceFromStart <= 0) {
             clearInterval(interval);
             setStartStream(prevState => ({
               ...prevState,
@@ -104,9 +106,9 @@ const HomePage = () => {
               streamStatus: 'inProgress'
             }));
           } else {
-            const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-            const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+            const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
             setStartStream(prevState => ({
               ...prevState,
               countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
@@ -119,22 +121,19 @@ const HomePage = () => {
       console.error('Error initializing stream:', error);
     }
   };
+  
 
   useEffect(() => {
-    if (startStream.startTime && startStream.serverTime) {
-      const startTime = new Date(startStream.startTime);
-      const serverTime = new Date(startStream.serverTime);
-  
-      // Вычисляем задержку между серверным временем и временем начала стрима
-      const initialDelay = Math.round((serverTime - startTime) / 1000);
+    if (startStream.serverTime && startStream.startTime) {
+      const initialDelay = Math.round((Date.now() - startStream.startTime + startStream.timeDifference) / 1000); 
       setDelayTime(initialDelay);
   
       const interval = setInterval(() => {
         setDelayTime((prevDelayTime) => {
           if (prevDelayTime < 0) {
-            return prevDelayTime + 1; // Если задержка отрицательная, увеличиваем
+            return prevDelayTime + 1; // Увеличиваем, чтобы оно шло к 0
           }
-          return prevDelayTime + 1; // Увеличиваем каждую секунду
+          return prevDelayTime + 1;
         });
       }, 1000);
   
