@@ -120,34 +120,27 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    const now = new Date();
-    const startTime = new Date(startStream.startTime);
-    const initialDelay = (startTime - now) / 1000;
+  const now = new Date();
+  const initialDelay = Math.round((now - startStream.startTime) / 1000);
+  console.log('Initial delay:', initialDelay);
   
-    if (initialDelay > 0 || !delayTime) {
-      console.log('ещё не начался');
-      const timeout = setTimeout(() => {
-        setDelayTime(0); 
-        const interval = setInterval(() => {
-          setDelayTime((prevDelayTime) => Math.floor(prevDelayTime + 1));
-        }, 1000);
-    
-        return () => clearInterval(interval);
-      }, initialDelay * 1000);
-      
-      return () => clearTimeout(timeout);
-    } else {
-      console.log('стрим уже начался');
-      const pastTime = Math.floor(-initialDelay); 
-      setDelayTime(pastTime);
-      const interval = setInterval(() => {
-        setDelayTime((prevDelayTime) => Math.floor(prevDelayTime + 1));
-      }, 1000);
-    
-      return () => clearInterval(interval);
-    }
-  }, [startStream.startTime]);
+  // Устанавливаем начальное значение задержки
+  setDelayTime(initialDelay);
   
+  const interval = setInterval(() => {
+    setDelayTime((prevDelayTime) => {
+      // Если значение отрицательное, уменьшаем его до 0
+      if (prevDelayTime < 0) {
+        return prevDelayTime + 1; // Увеличиваем, чтобы оно шло к 0
+      }
+      // Если значение положительное или равно 0, увеличиваем каждую секунду
+      return prevDelayTime + 1;
+    });
+  }, 1000);
+  
+  // Очищаем интервал при размонтировании компонента
+  return () => clearInterval(interval);
+}, [startStream.startTime]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {
