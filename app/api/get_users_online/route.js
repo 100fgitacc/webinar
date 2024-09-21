@@ -25,6 +25,9 @@ async function broadcastOnlineUsers(count) {
 
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
+  const serverTime = Date.now();
+    const date = new Date(serverTime);  // создаем объект даты
+    console.log(date.toUTCString()); 
   const client = await pool.connect();
   try {
     const queryStream = `
