@@ -121,16 +121,33 @@ const HomePage = () => {
 
   useEffect(() => {
     const now = new Date();
-    const initialDelay = Math.round(Math.max((now - startStream.startTime) / 1000, 0));
-    setDelayTime(initialDelay);
+    const startTime = new Date(startStream.startTime);
+    const initialDelay = (now - startTime) / 1000; // Разница во времени в секундах
   
-    const interval = setInterval(() => {
-      setDelayTime((prevDelayTime) => prevDelayTime + 1);
-    }, 1000);
-  
-    return () => clearInterval(interval);
+    if (initialDelay < 0) {
+      // Если текущее время меньше времени начала стрима, ждем до момента начала
+      const timeout = setTimeout(() => {
+        setDelayTime(0); // Устанавливаем задержку на 0 в момент старта стрима
+        const interval = setInterval(() => {
+          setDelayTime((prevDelayTime) => prevDelayTime + 1);
+        }, 1000);
+    
+        return () => clearInterval(interval);
+      }, Math.abs(initialDelay) * 1000);
+      
+      return () => clearTimeout(timeout);
+    } else {
+      // Если стрим уже начался, начинаем с прошедшего времени
+      setDelayTime(initialDelay); // Устанавливаем задержку в секундах от старта стрима
+      const interval = setInterval(() => {
+        setDelayTime((prevDelayTime) => prevDelayTime + 1);
+      }, 1000);
+    
+      return () => clearInterval(interval);
+    }
   }, [startStream.startTime]);
-
+    console.log(delayTime);
+    
   useEffect(() => {
     if (typeof window !== "undefined") {
       setWindowWidth(window.innerWidth);

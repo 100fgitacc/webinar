@@ -49,7 +49,7 @@ export async function GET() {
             const taskClient = await pool.connect(); 
             try {
               const message = {
-                id: Date.now() + Math.floor(Math.random() * 1000),
+                id: Date.now(),
                 sender,
                 text,
                 sending_time: new Date().toISOString(),
