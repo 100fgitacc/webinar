@@ -89,12 +89,10 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      // Сначала запускаем воспроизведение, чтобы обеспечить корректное взаимодействие на iOS
       player.play().then(() => {
         console.log("Плеер начал воспроизведение");
         setIsPlayed(true);
   
-        // После успешного старта воспроизведения устанавливаем время
         return player.setCurrentTime(delayTime);
       }).then(() => {
         console.log(`Время установлено на: ${delayTime}`);

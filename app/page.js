@@ -27,9 +27,9 @@ const HomePage = () => {
       const response = await axios.get('/api/streams', { headers: { 'Cache-Control': 'no-cache' } });
       const newData = response.data;
       
-      const { start_date, video_duration, scenario_id, video_id, button_show_at} = newData;
+      const { start_date, video_duration, scenario_id, video_id, button_show_at, serverTime} = newData;
       
-      return { start_date, video_duration, scenario_id, video_id, button_show_at };
+      return { start_date, video_duration, scenario_id, video_id, button_show_at, serverTime };
     } catch (error) {
       console.error('Error fetching stream data:', error);
       return {};
@@ -46,7 +46,7 @@ const HomePage = () => {
         return;
       }
       
-      const { start_date, video_duration, scenario_id, video_id, button_show_at } = streamsData;
+      const { start_date, video_duration, scenario_id, video_id, button_show_at, serverTime } = streamsData;
   
       const startTime = new Date(start_date);
   
@@ -55,7 +55,7 @@ const HomePage = () => {
         return;
       }
   
-      const now = new Date();
+      const now = new Date(serverTime);
       const duration = video_duration || 0;
       const streamEndTime = new Date(startTime);
       streamEndTime.setSeconds(streamEndTime.getSeconds() + duration);
@@ -79,7 +79,8 @@ const HomePage = () => {
           streamStatus,
           scenario_id,
           video_id,
-          button_show_at
+          button_show_at,
+          serverTime
         };
   
         if (streamStatus !== 'ended') {
@@ -92,7 +93,7 @@ const HomePage = () => {
   
       if (streamStatus === 'notStarted') {
         const interval = setInterval(() => {
-          const now = new Date();
+          const now = new Date(serverTime);
           const timeDifference = startTime - now;
   
           if (timeDifference <= 0) {
@@ -121,8 +122,8 @@ const HomePage = () => {
 
   useEffect(() => {
   const now = Date.now();
-  
-  const initialDelay = Math.round((now - startStream.startTime) / 1000);
+   
+  const initialDelay = Math.round((new Date(startStream.serverTime) - startStream.startTime) / 1000); 
   setDelayTime(initialDelay);
   
   const interval = setInterval(() => {
@@ -139,6 +140,7 @@ const HomePage = () => {
   // Очищаем интервал при размонтировании компонента
   return () => clearInterval(interval);
 }, [startStream.startTime]);
+    console.log(startStream.serverTime);
     
   useEffect(() => {
     if (typeof window !== "undefined") {
