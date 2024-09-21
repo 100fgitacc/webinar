@@ -143,7 +143,7 @@ const HomePage = () => {
       // Очищаем интервал при размонтировании компонента
       return () => clearInterval(interval);
     }
-  }, [ delayTime]);
+  }, [startStream.startTime, startStream.serverTime, delayTime]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {

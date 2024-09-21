@@ -36,7 +36,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         console.log('Воспроизведение началось');
         
         newPlayer.setCurrentTime(delayTime).then(() => {
-          alert(delayTime);
+          console.log(`Видео началось с времени: ${delayTime} секунд`);
         }).catch((error) => {
           console.error('Ошибка при установке времени воспроизведения:', error);
         });
