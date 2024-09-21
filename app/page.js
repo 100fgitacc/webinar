@@ -37,7 +37,6 @@ const HomePage = () => {
   };
   const [delayTime, setDelayTime] = useState(null);
 
-  const [delayTime, setDelayTime] = useState(null);
   const initializeStream = async () => {
     try {
       const streamsData = await getStreamData();
