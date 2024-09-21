@@ -135,7 +135,8 @@ const HomePage = () => {
           if (prevDelayTime < 0) {
             return prevDelayTime + 1;
           }
-          // Если значение положительное или равно 0, увеличиваем каждую секунду
+         console.log(initialDelay);
+         
           return prevDelayTime + 1;
         });
       }, 1000);
