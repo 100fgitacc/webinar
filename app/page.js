@@ -120,7 +120,8 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-  const now = new Date();
+  const now = Date.now();
+  
   const initialDelay = Math.round((now - startStream.startTime) / 1000);
   setDelayTime(initialDelay);
   
