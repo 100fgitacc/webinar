@@ -35,9 +35,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
         if (streamStatus === 'inProgress') {
-          newPlayer.setCurrentTime(0).then(() => {
-          }).catch((error) => {
-            console.error('Ошибка при установке времени плеера после загрузки:', error);
+          newPlayer.setCurrentTime(delayTime).catch((error) => {
+            console.error('Error setting current time:', error);
           });
         }
       });
@@ -82,23 +81,11 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const handlePlayClick = () => {
     if (player) {
       // Проверка, что плеер готов
-      player.ready().then(() => {
-        // Устанавливаем текущее время
-        player.setCurrentTime(delayTime).then(() => {
-          console.log("Успешно установлено время:", delayTime);
-    
-          // Запускаем воспроизведение
-          player.play().then(() => {
-            console.log("Плеер начал воспроизведение с времени:", delayTime);
-            setIsPlayed(true);
-          }).catch((error) => {
-            console.error('Ошибка при запуске воспроизведения:', error);
-          });
-        }).catch((error) => {
-          console.error('Ошибка при установке текущего времени:', error);
-        });
+      player.play().then(() => {
+        console.log("Плеер начал воспроизведение с времени:", delayTime);
+        setIsPlayed(true);
       }).catch((error) => {
-        console.error('Плеер не готов к воспроизведению:', error);
+        console.error('Ошибка при запуске воспроизведения:', error);
       });
     } else {
       console.error("Экземпляр плеера не найден.");
