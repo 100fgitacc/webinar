@@ -124,22 +124,26 @@ const HomePage = () => {
   
 
   useEffect(() => {
-    if (startStream.serverTime && startStream.startTime) {
-      const initialDelay = Math.round((Date.now() - startStream.startTime + startStream.timeDifference) / 1000); 
+    if (startStream.serverTime && startStream.startTime && delayTime === null) {
+      // Вычисляем начальную задержку только один раз
+      const initialDelay = Math.round((Date.now() - startStream.startTime + startStream.timeDifference) / 1000);
       setDelayTime(initialDelay);
   
       const interval = setInterval(() => {
         setDelayTime((prevDelayTime) => {
+          // Если значение отрицательное, увеличиваем его к 0
           if (prevDelayTime < 0) {
-            return prevDelayTime + 1; // Увеличиваем, чтобы оно шло к 0
+            return prevDelayTime + 1;
           }
+          // Если значение положительное или равно 0, увеличиваем каждую секунду
           return prevDelayTime + 1;
         });
       }, 1000);
   
+      // Очищаем интервал при размонтировании компонента
       return () => clearInterval(interval);
     }
-  }, [startStream.startTime, startStream.serverTime]);
+  }, [startStream.startTime, startStream.serverTime, delayTime]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {
