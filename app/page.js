@@ -135,7 +135,6 @@ const HomePage = () => {
           if (prevDelayTime < 0) {
             return prevDelayTime + 1;
           }
-         console.log(initialDelay);
          
           return prevDelayTime + 1;
         });
@@ -144,7 +143,7 @@ const HomePage = () => {
       // Очищаем интервал при размонтировании компонента
       return () => clearInterval(interval);
     }
-  }, [startStream.startTime, startStream.serverTime, delayTime]);
+  }, [ delayTime]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {

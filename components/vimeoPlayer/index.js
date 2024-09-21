@@ -32,15 +32,15 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
       setPlayer(newPlayer);
 
-      // newPlayer.on('play', () => {
-      //   console.log('Воспроизведение началось');
+      newPlayer.on('play', () => {
+        console.log('Воспроизведение началось');
         
-      //   newPlayer.setCurrentTime(delayTime).then(() => {
-      //     console.log(`Видео началось с времени: ${delayTime} секунд`);
-      //   }).catch((error) => {
-      //     console.error('Ошибка при установке времени воспроизведения:', error);
-      //   });
-      // });
+        newPlayer.setCurrentTime(delayTime).then(() => {
+          alert(delayTime);
+        }).catch((error) => {
+          console.error('Ошибка при установке времени воспроизведения:', error);
+        });
+      });
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
         if (streamStatus === 'inProgress') {
@@ -90,7 +90,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const handlePlayClick = () => {
     if (player) {
       player.play().then(() => {
-        console.log("Плеер начал воспроизведение");
+      
         setIsPlayed(true);
   
         return player.setCurrentTime(delayTime);
