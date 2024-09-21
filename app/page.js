@@ -13,7 +13,6 @@ import Image from 'next/image';
 const HomePage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [startStream, setStartStream] = useState({
-    delayTime: null,
     startTime: null,
     streamStatus: '',
     countdown: null,
@@ -35,6 +34,7 @@ const HomePage = () => {
       return {};
     }
   };
+  const [delayTime, setDelayTime] = useState(null);
 
   const initializeStream = async () => {
     try {
@@ -118,7 +118,18 @@ const HomePage = () => {
       console.error('Error initializing stream:', error);
     }
   };
+
+  useEffect(() => {
+    const now = new Date();
+    const initialDelay = Math.round(Math.max((now - startStream.startTime) / 1000, 0));
+    setDelayTime(initialDelay);
   
+    const interval = setInterval(() => {
+      setDelayTime((prevDelayTime) => prevDelayTime + 1);
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [startStream.startTime]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -212,7 +223,7 @@ const HomePage = () => {
           </h1>
         <div className={styles.container}>
           <div className={styles['player-container']}>
-            <VimeoPlayer startStream={startStream} />
+            <VimeoPlayer startStream={startStream}  delayTime={delayTime}/>
             {showButton && (
               <Link className={`${styles["banner-wrapper"]} ${showButton ? styles.show : ''}`} href='https://4.100f.com/web-offer/?utm_source=efir' target="_blank">
                 <p className={styles.banner} >Забронировать место</p>

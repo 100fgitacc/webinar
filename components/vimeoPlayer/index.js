@@ -3,7 +3,7 @@ import Player from '@vimeo/player';
 import styles from './index.module.css';
 import axios from 'axios';
 
-const VimeoPlayer = ({ startStream }) => {
+const VimeoPlayer = ({ startStream, delayTime }) => {
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const [player, setPlayer] = useState(null);
@@ -33,9 +33,12 @@ const VimeoPlayer = ({ startStream }) => {
       setPlayer(newPlayer);
 
       newPlayer.on('loaded', () => {
-        if (streamStatus === 'inProgress' && startStream.startTime > 0) {
-          newPlayer.setCurrentTime(startStream.delayTime).catch((error) => {
-            console.error('Error setting current time:', error);
+        console.log('Плеер загружен');
+        if (streamStatus === 'inProgress') {
+          newPlayer.setCurrentTime(delayTime).then(() => {
+            console.log('Текущее время плеера установлено:', delayTime);
+          }).catch((error) => {
+            console.error('Ошибка при установке времени плеера после загрузки:', error);
           });
         }
       });
@@ -79,11 +82,20 @@ const VimeoPlayer = ({ startStream }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      player.play().then(() => {
-        setIsPlayed(true);
+      player.setCurrentTime(delayTime).then(() => {
+        console.log("Успешно установлено время:", delayTime);
+  
+        player.play().then(() => {
+          console.log("Плеер начал воспроизведение с времени:", delayTime);
+          setIsPlayed(true);
+        }).catch((error) => {
+          console.error('Ошибка при запуске воспроизведения:', error);
+        });
       }).catch((error) => {
-        console.error('Error starting playback:', error);
+        console.error('Ошибка при установке текущего времени:', error);
       });
+    } else {
+      console.error("Экземпляр плеера не найден.");
     }
   };
 
