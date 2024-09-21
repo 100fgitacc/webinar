@@ -26,6 +26,7 @@ const HomePage = () => {
     try {
       const response = await axios.get('/api/streams', { headers: { 'Cache-Control': 'no-cache' } });
       const newData = response.data;
+      
       const { start_date, video_duration, scenario_id, video_id, button_show_at} = newData;
       
       return { start_date, video_duration, scenario_id, video_id, button_show_at };
@@ -36,6 +37,7 @@ const HomePage = () => {
   };
   const [delayTime, setDelayTime] = useState(null);
 
+  const [delayTime, setDelayTime] = useState(null);
   const initializeStream = async () => {
     try {
       const streamsData = await getStreamData();
@@ -68,13 +70,12 @@ const HomePage = () => {
       } else {
         streamStatus = 'inProgress';
       }
+      console.log(streamStatus);
       
-      const delayTime = Math.max((now - startTime) / 1000, 0);
-  
+      
       setStartStream(prevState => {
         const updatedState = {
           ...prevState,
-          delayTime,
           startTime,
           streamStatus,
           scenario_id,
@@ -205,7 +206,6 @@ const HomePage = () => {
     const interval = setInterval(() => {
       const now = new Date();
       const elapsedTime = Math.max((now - startTime) / 1000, 0); 
-      console.log(elapsedTime >= buttonShowAt);
       
       if (elapsedTime >= buttonShowAt) {
         setShowButton(true);
@@ -213,7 +213,33 @@ const HomePage = () => {
       }
     }, 1000);
   };
+
+  const [refreshStreamData, setRefreshStreamData] = useState(null);
+
+  const handleRefreshStreamData = (e) =>{
+    setRefreshStreamData(e);
+  }
   
+  useEffect(() => {
+    if (refreshStreamData === true) {
+      initializeStream(); 
+      
+      const eventSource = new EventSource('/api/messages');
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+        } catch (error) {
+          console.error('Ошибка при обработке сообщений SSE:', error);
+        }
+      };
+    
+      return () => {
+        eventSource.close();
+      };
+    }
+    setRefreshStreamData(false);
+  }, [refreshStreamData]);
 
   return (
     <section className={styles.homePage}>
@@ -235,7 +261,7 @@ const HomePage = () => {
             {/* <h3 className={styles['comments-title']}>
               КОММЕНТАРИИ <span>({counter ? counter : 0})</span>
             </h3> */}
-            <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} />
+            <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} setStreamEnded={handleRefreshStreamData}/>
           </div>
         </div>
         {windowWidth >= 525 &&
