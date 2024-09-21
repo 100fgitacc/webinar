@@ -31,6 +31,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       });
 
       setPlayer(newPlayer);
+console.log(delayTime);
 
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
