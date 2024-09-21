@@ -86,7 +86,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       popupShow();    
     }else{
       const tempMessage = {
-        id: Date.now(),
+        id: Date.now() + Math.floor(Math.random() * 1000),
         // sender: !isAdmin ? userName || currentName || name : 'Модератор',
         sender: userName || currentName || name,
         text: comment.replace(/\n/g, '\\n'),

@@ -49,7 +49,7 @@ export async function GET() {
             const taskClient = await pool.connect(); 
             try {
               const message = {
-                id: Date.now(),
+                id: Date.now() + Math.floor(Math.random() * 1000),
                 sender,
                 text,
                 sending_time: new Date().toISOString(),
@@ -88,7 +88,7 @@ export async function GET() {
             console.log('Все сообщения в таблице archived_messages.');
         
             // Логируем установку задачи на удаление через 
-            const clearMessagesTime = new Date(Date.now() + 300000);
+            const clearMessagesTime = new Date(Date.now() + 5000);
             console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
               console.log('Начинаю задачу по удалению сообщений');
