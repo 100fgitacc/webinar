@@ -124,11 +124,10 @@ const HomePage = () => {
   
 
   useEffect(() => {
-    if (startStream.serverTime && startStream.startTime && delayTime === null) {
       // Вычисляем начальную задержку только один раз
       const initialDelay = Math.round((Date.now() - startStream.startTime + startStream.timeDifference) / 1000);
       setDelayTime(initialDelay);
-  
+      
       const interval = setInterval(() => {
         setDelayTime((prevDelayTime) => {
           // Если значение отрицательное, увеличиваем его к 0
@@ -142,8 +141,7 @@ const HomePage = () => {
   
       // Очищаем интервал при размонтировании компонента
       return () => clearInterval(interval);
-    }
-  }, [startStream.startTime, startStream.serverTime, delayTime]);
+  }, [startStream.startTime]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {
