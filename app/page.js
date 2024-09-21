@@ -124,24 +124,30 @@ const HomePage = () => {
   
 
   useEffect(() => {
-      // Вычисляем начальную задержку только один раз
-      const initialDelay = Math.round((Date.now() - startStream.startTime + startStream.timeDifference) / 1000);
-      setDelayTime(initialDelay);
-      
-      const interval = setInterval(() => {
+    // Вычисляем серверное время на момент запуска
+    const serverTimeAtStart = new Date(startStream.serverTime).getTime();
+    
+    // Вычисляем текущее время с учетом разницы времени между сервером и клиентом
+    const currentTime = Date.now() - startStream.timeDifference;
+
+    // Вычисляем начальную задержку (время, прошедшее с начала стрима)
+    const initialDelay = Math.round((currentTime - startStream.startTime.getTime()) / 1000);
+    setDelayTime(initialDelay);
+
+    const interval = setInterval(() => {
         setDelayTime((prevDelayTime) => {
-          // Если значение отрицательное, увеличиваем его к 0
-          if (prevDelayTime < 0) {
+            // Если значение отрицательное, увеличиваем его к 0
+            if (prevDelayTime < 0) {
+                return prevDelayTime + 1;
+            }
+
             return prevDelayTime + 1;
-          }
-         
-          return prevDelayTime + 1;
         });
-      }, 1000);
-  
-      // Очищаем интервал при размонтировании компонента
-      return () => clearInterval(interval);
-  }, [startStream.startTime]);
+    }, 1000);
+
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(interval);
+}, [startStream.startTime, startStream.serverTime, startStream.timeDifference]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {

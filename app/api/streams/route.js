@@ -14,8 +14,6 @@ export async function GET() {
     const { rows } = await client.query(query);
 
     const serverTime = Date.now();
-    const date = new Date(serverTime);  // создаем объект даты
-    console.log(date.toUTCString()); 
     
     return NextResponse.json({
       ...rows[0],
