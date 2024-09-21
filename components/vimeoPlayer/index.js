@@ -32,6 +32,15 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
       setPlayer(newPlayer);
 
+      newPlayer.on('play', () => {
+        console.log('Воспроизведение началось');
+        
+        newPlayer.setCurrentTime(delayTime).then(() => {
+          console.log(`Видео началось с времени: ${delayTime} секунд`);
+        }).catch((error) => {
+          console.error('Ошибка при установке времени воспроизведения:', error);
+        });
+      });
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
         if (streamStatus === 'inProgress') {
@@ -80,23 +89,22 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   const handlePlayClick = () => {
     if (player) {
-      // Сначала устанавливаем время, а затем запускаем воспроизведение
-      player.setCurrentTime(delayTime).then(() => {
-        console.log("Время установлено:", delayTime);
-        
-        // После успешной установки времени запускаем воспроизведение
-        return player.play();
-      }).then(() => {
-        console.log("Плеер начал воспроизведение с времени:", delayTime);
+      // Сначала запускаем воспроизведение, чтобы обеспечить корректное взаимодействие на iOS
+      player.play().then(() => {
+        console.log("Плеер начал воспроизведение");
         setIsPlayed(true);
+  
+        // После успешного старта воспроизведения устанавливаем время
+        return player.setCurrentTime(delayTime);
+      }).then(() => {
+        console.log(`Время установлено на: ${delayTime}`);
       }).catch((error) => {
-        console.error('Ошибка при установке времени или воспроизведении:', error);
+        console.error('Ошибка при воспроизведении или установке времени:', error);
       });
     } else {
       console.error("Экземпляр плеера не найден.");
     }
   };
-
   const handleQualityChange = (event) => {
     const selectedQuality = event.target.value;
     if (player) {
