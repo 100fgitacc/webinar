@@ -121,26 +121,26 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-  const now = Date.now();
-   
-  const initialDelay = Math.round((new Date(startStream.serverTime) - startStream.startTime) / 1000); 
-  setDelayTime(initialDelay);
+    if (startStream.startTime && startStream.serverTime) {
+      const startTime = new Date(startStream.startTime);
+      const serverTime = new Date(startStream.serverTime);
   
-  const interval = setInterval(() => {
-    setDelayTime((prevDelayTime) => {
-      // Если значение отрицательное, уменьшаем его до 0
-      if (prevDelayTime < 0) {
-        return prevDelayTime + 1; // Увеличиваем, чтобы оно шло к 0
-      }
-      // Если значение положительное или равно 0, увеличиваем каждую секунду
-      return prevDelayTime + 1;
-    });
-  }, 1000);
+      // Вычисляем задержку между серверным временем и временем начала стрима
+      const initialDelay = Math.round((serverTime - startTime) / 1000);
+      setDelayTime(initialDelay);
   
-  // Очищаем интервал при размонтировании компонента
-  return () => clearInterval(interval);
-}, [startStream.startTime]);
-    console.log(startStream.serverTime);
+      const interval = setInterval(() => {
+        setDelayTime((prevDelayTime) => {
+          if (prevDelayTime < 0) {
+            return prevDelayTime + 1; // Если задержка отрицательная, увеличиваем
+          }
+          return prevDelayTime + 1; // Увеличиваем каждую секунду
+        });
+      }, 1000);
+  
+      return () => clearInterval(interval);
+    }
+  }, [startStream.startTime, startStream.serverTime]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {
