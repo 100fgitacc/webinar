@@ -122,9 +122,6 @@ const HomePage = () => {
   useEffect(() => {
   const now = new Date();
   const initialDelay = Math.round((now - startStream.startTime) / 1000);
-  console.log('Initial delay:', initialDelay);
-  
-  // Устанавливаем начальное значение задержки
   setDelayTime(initialDelay);
   
   const interval = setInterval(() => {
