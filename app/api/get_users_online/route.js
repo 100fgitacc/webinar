@@ -123,7 +123,6 @@ export async function GET() {
         clients.splice(index, 1);
       }
 
-      const serverTime = new Date();
 
       // Проверяем, если время после switchTime
       if (serverTime >= switchTime) {
