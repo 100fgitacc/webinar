@@ -150,7 +150,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         window.removeEventListener('resize', handleResize);
       };
     }
-  }, [player]);
+  }, [player, isMobile]);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
