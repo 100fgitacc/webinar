@@ -124,7 +124,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       if (!document.hasFocus()) {
         if (player) {
           player.pause().then(() => {
-            console.log('Видео поставлено на паузу.');
+            setIsPlayed(false);
           }).catch((error) => {
             console.error('Ошибка при попытке поставить видео на паузу:', error);
           });
