@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './index.module.css';
 import Cookies from 'js-cookie';
@@ -228,56 +227,12 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
   }, [chatState]);
 
   const [expandedMessages, setExpandedMessages] = useState({});
-  const toggleExpand = (messageId) => {
-    setExpandedMessages((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  };
-const [windowWidth, setWindowWidth] = useState(0);
-const [scrollPosition, setScrollPosition] = useState(0); 
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setWindowWidth(window.innerWidth);
-
-      const handleResize = () => setWindowWidth(window.innerWidth);
-      window.addEventListener('resize', handleResize);
-
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, []);
-
-  const preventScroll = () => {
-    setScrollPosition(window.scrollY); 
-    document.body.style.position = 'fixed';  
-    document.body.style.top = `-${scrollPosition}px`; 
-    document.body.style.width = '100%';  
-    document.body.style.overflowY = 'scroll'; 
-  };
-
-  // Функция для разблокировки прокрутки
-  const restoreScroll = () => {
-    document.body.style.position = ''; 
-    document.body.style.top = ''; 
-    document.body.style.width = '';  
-    document.body.style.overflowY = '';  
-    window.scrollTo(0, scrollPosition);  
-  };
-
-  const handleFocus = () => {
-    if (windowWidth < 595) {
-      preventScroll();
-    }
-  };
-
-  const handleBlur = () => {
-    if (windowWidth < 595) {
-      restoreScroll();
-    }
-  };
-
-
+ const toggleExpand = (messageId) => {
+  setExpandedMessages((prev) => ({
+    ...prev,
+    [messageId]: !prev[messageId],
+  }));
+};
   return (
     <div className={styles['chat-wrapper']}>
       <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll} >
@@ -329,10 +284,7 @@ const [scrollPosition, setScrollPosition] = useState(0);
               className={styles.textarea} 
               placeholder='Ваш комментарий' 
               value={comment} 
-              onChange={handleCommentChange} 
-              onFocus={handleFocus} 
-              onBlur={handleBlur} 
-              
+              onChange={handleCommentChange}
             ></textarea>
           </div>
           <button type='button' className={styles.btn} onClick={handleMessageSend}>
