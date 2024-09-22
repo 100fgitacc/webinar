@@ -118,9 +118,15 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayerWidth(width); 
     }
   }, [playerRef]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+
     const handleTabChange = () => {
-      if (!document.hasFocus()) {
+      if (isMobile && !document.hasFocus()) {
         if (player) {
           player.pause().then(() => {
             setIsPlayed(false);
@@ -130,14 +136,16 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         }
       }
     };
-  
+
     window.addEventListener('blur', handleTabChange);
     window.addEventListener('focus', handleTabChange);
+    window.addEventListener('resize', handleResize); 
     return () => {
       window.removeEventListener('blur', handleTabChange);
       window.removeEventListener('focus', handleTabChange);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [player]);
+  }, [player, isMobile]);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':

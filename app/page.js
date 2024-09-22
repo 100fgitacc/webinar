@@ -126,25 +126,17 @@ const HomePage = () => {
   useEffect(() => {
     if (startStream.startTime && startStream.timeDifference) {
       
-    // Приводим время начала стрима к миллисекундам
-    const streamStartTime = new Date(startStream.startTime).getTime();
+      const streamStartTime = new Date(startStream.startTime).getTime();
+      const clientCurrentTime = Date.now() - startStream.timeDifference;
+      const initialDelay = Math.round((clientCurrentTime - streamStartTime) / 1000);
+      setDelayTime(initialDelay);
     
-    // Текущее время на клиенте с учётом разницы с сервером
-    const clientCurrentTime = Date.now() - startStream.timeDifference;
-  
-    // Вычисляем задержку (время, прошедшее с начала стрима в секундах)
-    const initialDelay = Math.round((clientCurrentTime - streamStartTime) / 1000);
-    setDelayTime(initialDelay);
-  
-    const interval = setInterval(() => {
-      setDelayTime((prevDelayTime) => {
-        // Если задержка отрицательная (стрим еще не начался), увеличиваем до 0
-        return prevDelayTime < 0 ? prevDelayTime + 1 : prevDelayTime + 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }
- 
+      const interval = setInterval(() => {
+        setDelayTime((prevDelayTime) => prevDelayTime + 1); 
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
   }, [startStream.startTime, startStream.timeDifference]);
     
   useEffect(() => {
