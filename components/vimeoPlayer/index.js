@@ -123,11 +123,14 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setWindowWidth(window.innerWidth);
-  
+      // Функция для изменения состояния ширины окна
+      const handleResize = () => {
+        setWindowWidth(window.innerWidth);
+      };
+
+      // Функция для обработки смены вкладки (потери фокуса)
       const handleTabChange = () => {
-        if (windowWidth && !document.hasFocus()) {
-          alert(windowWidth);
+        if (window.innerWidth < 1024 && !document.hasFocus()) {
           if (player) {
             player.pause().then(() => {
               setIsPlayed(false);
@@ -137,20 +140,24 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
           }
         }
       };
-  
+
+      // Устанавливаем начальное значение ширины окна
+      setWindowWidth(window.innerWidth);
+
+      // Добавляем обработчики событий для смены фокуса и изменения размера окна
+      window.addEventListener('resize', handleResize);
       window.addEventListener('blur', handleTabChange);
       window.addEventListener('focus', handleTabChange);
-      const handleResize = () => setWindowWidth(window.innerWidth);
-      window.addEventListener('resize', handleResize);
-  
-      // Удаление обработчиков при размонтировании
+
+      // Удаляем обработчики при размонтировании компонента
       return () => {
+        window.removeEventListener('resize', handleResize);
         window.removeEventListener('blur', handleTabChange);
         window.removeEventListener('focus', handleTabChange);
-        window.removeEventListener('resize', handleResize);
       };
     }
-  }, [windowWidth]);
+  }, [player, isPlayed]);
+
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
