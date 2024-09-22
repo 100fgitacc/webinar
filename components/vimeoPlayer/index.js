@@ -119,6 +119,26 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayerWidth(width); 
     }
   }, [playerRef]);
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if(player){
+          player.pause().then(() => {
+          }).catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    };
+  
+    // Добавляем слушатель события visibilitychange
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+    // Очищаем слушатель при размонтировании компонента
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
