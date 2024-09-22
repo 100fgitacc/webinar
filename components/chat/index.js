@@ -244,11 +244,12 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       return () => window.removeEventListener('resize', handleResize);
     }
   }, []);
-
   const [windowWidth, setWindowWidth] = useState(0);
   // Функция для изменения состояния первого ребенка body при фокусе на textarea
   const handleFocus = () => {
+
     if (windowWidth < 595 && document.body.firstElementChild) {
+      
       document.body.firstElementChild.style.position = 'fixed';
       document.body.firstElementChild.style.width = '100%';
     }
