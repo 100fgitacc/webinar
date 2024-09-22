@@ -248,21 +248,32 @@ const [scrollPosition, setScrollPosition] = useState(0);
     }
   }, []);
 
+  const preventScroll = () => {
+    setScrollPosition(window.scrollY); 
+    document.body.style.position = 'fixed';  
+    document.body.style.top = `-${scrollPosition}px`; 
+    document.body.style.width = '100%';  
+    document.body.style.overflowY = 'scroll'; 
+  };
+
+  // Функция для разблокировки прокрутки
+  const restoreScroll = () => {
+    document.body.style.position = ''; 
+    document.body.style.top = ''; 
+    document.body.style.width = '';  
+    document.body.style.overflowY = '';  
+    window.scrollTo(0, scrollPosition);  
+  };
+
   const handleFocus = () => {
     if (windowWidth < 595) {
-      setScrollPosition(window.scrollY);
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${window.scrollY}px`;
-      document.body.style.width = '100%'; 
+      preventScroll();
     }
   };
 
   const handleBlur = () => {
     if (windowWidth < 595) {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollPosition); 
+      restoreScroll();
     }
   };
 
