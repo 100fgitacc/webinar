@@ -120,25 +120,28 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
   }, [playerRef]);
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        if(player){
+    const handleTabChange = () => {
+      if (!document.hasFocus()) {
+        if (player) {
           player.pause().then(() => {
+            console.log('Видео поставлено на паузу.');
           }).catch((error) => {
-            console.error(error);
+            console.error('Ошибка при попытке поставить видео на паузу:', error);
           });
         }
       }
     };
   
-    // Добавляем слушатель события visibilitychange
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Добавляем слушатель событий focus и blur
+    window.addEventListener('blur', handleTabChange);
+    window.addEventListener('focus', handleTabChange);
   
     // Очищаем слушатель при размонтировании компонента
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleTabChange);
+      window.removeEventListener('focus', handleTabChange);
     };
-  }, []);
+  }, [player]);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
