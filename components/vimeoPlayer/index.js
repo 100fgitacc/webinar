@@ -119,16 +119,15 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayerWidth(width); 
     }
   }, [playerRef]);
-  const [isMobile, setIsMobile] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const handleResize = () => {
-        setIsMobile(window.innerWidth <= 1024);
-      };
+      setWindowWidth(window.innerWidth);
   
       const handleTabChange = () => {
-        if (isMobile && !document.hasFocus()) {
+        if (windowWidth && !document.hasFocus()) {
+          alert(windowWidth);
           if (player) {
             player.pause().then(() => {
               setIsPlayed(false);
@@ -141,6 +140,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   
       window.addEventListener('blur', handleTabChange);
       window.addEventListener('focus', handleTabChange);
+      const handleResize = () => setWindowWidth(window.innerWidth);
       window.addEventListener('resize', handleResize);
   
       // Удаление обработчиков при размонтировании
@@ -150,7 +150,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         window.removeEventListener('resize', handleResize);
       };
     }
-  }, [player, isMobile]);
+  }, [windowWidth]);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
