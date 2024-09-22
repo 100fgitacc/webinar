@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './index.module.css';
 import Cookies from 'js-cookie';
@@ -233,6 +234,33 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     [messageId]: !prev[messageId],
   }));
 };
+const [windowWidth, setWindowWidth] = useState(0);
+// Функция для отслеживания изменения ширины окна
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    setWindowWidth(window.innerWidth);
+
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }
+}, []);
+
+// Функция для изменения состояния body при фокусе на textarea
+const handleFocus = () => {
+  if (windowWidth < 595) {
+    document.body.style.position = 'fixed';
+  }
+};
+
+const handleBlur = () => {
+  if (windowWidth < 595) {
+    document.body.style.position = '';
+  }
+};
+
+
   return (
     <div className={styles['chat-wrapper']}>
       <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll} >
@@ -284,7 +312,10 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
               className={styles.textarea} 
               placeholder='Ваш комментарий' 
               value={comment} 
-              onChange={handleCommentChange}
+              onChange={handleCommentChange} 
+              onFocus={handleFocus} 
+              onBlur={handleBlur} 
+              
             ></textarea>
           </div>
           <button type='button' className={styles.btn} onClick={handleMessageSend}>
