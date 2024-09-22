@@ -228,37 +228,43 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
   }, [chatState]);
 
   const [expandedMessages, setExpandedMessages] = useState({});
- const toggleExpand = (messageId) => {
-  setExpandedMessages((prev) => ({
-    ...prev,
-    [messageId]: !prev[messageId],
-  }));
-};
+  const toggleExpand = (messageId) => {
+    setExpandedMessages((prev) => ({
+      ...prev,
+      [messageId]: !prev[messageId],
+    }));
+  };
 const [windowWidth, setWindowWidth] = useState(0);
-// Функция для отслеживания изменения ширины окна
-useEffect(() => {
-  if (typeof window !== 'undefined') {
-    setWindowWidth(window.innerWidth);
+const [scrollPosition, setScrollPosition] = useState(0); 
 
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWindowWidth(window.innerWidth);
 
-    return () => window.removeEventListener('resize', handleResize);
-  }
-}, []);
+      const handleResize = () => setWindowWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
 
-// Функция для изменения состояния body при фокусе на textarea
-const handleFocus = () => {
-  if (windowWidth < 595) {
-    document.body.style.position = 'fixed';
-  }
-};
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
-const handleBlur = () => {
-  if (windowWidth < 595) {
-    document.body.style.position = '';
-  }
-};
+  const handleFocus = () => {
+    if (windowWidth < 595) {
+      setScrollPosition(window.scrollY);
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.width = '100%'; 
+    }
+  };
+
+  const handleBlur = () => {
+    if (windowWidth < 595) {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollPosition); 
+    }
+  };
 
 
   return (
