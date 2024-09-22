@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useEffect, useRef, useState } from 'react';
 import Player from '@vimeo/player';
 import styles from './index.module.css';
@@ -119,34 +119,38 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayerWidth(width); 
     }
   }, [playerRef]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+  const [isMobile, setIsMobile] = useState(null);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 1024);
-    };
-
-    const handleTabChange = () => {
-      if (isMobile && !document.hasFocus()) {
-        if (player) {
-          player.pause().then(() => {
-            setIsPlayed(false);
-          }).catch((error) => {
-            console.error('Ошибка при попытке поставить видео на паузу:', error);
-          });
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 1024);
+      };
+  
+      const handleTabChange = () => {
+        if (isMobile && !document.hasFocus()) {
+          if (player) {
+            player.pause().then(() => {
+              setIsPlayed(false);
+            }).catch((error) => {
+              console.error('Ошибка при попытке поставить видео на паузу:', error);
+            });
+          }
         }
-      }
-    };
-
-    window.addEventListener('blur', handleTabChange);
-    window.addEventListener('focus', handleTabChange);
-    window.addEventListener('resize', handleResize); 
-    return () => {
-      window.removeEventListener('blur', handleTabChange);
-      window.removeEventListener('focus', handleTabChange);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [player, isMobile]);
+      };
+  
+      window.addEventListener('blur', handleTabChange);
+      window.addEventListener('focus', handleTabChange);
+      window.addEventListener('resize', handleResize);
+  
+      // Удаление обработчиков при размонтировании
+      return () => {
+        window.removeEventListener('blur', handleTabChange);
+        window.removeEventListener('focus', handleTabChange);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [player]);
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':
