@@ -115,9 +115,10 @@ export async function GET() {
             taskClient.release(); 
           }
         });
-      } else {
-        console.log('Задача "saveAndClearMessages" уже существует, пропуск...');
-      }
+      } 
+      // else {
+      //   console.log('Задача "saveAndClearMessages" уже существует, пропуск...');
+      // }
     }
 
     

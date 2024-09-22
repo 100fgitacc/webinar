@@ -1,18 +1,32 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import schedule from 'node-schedule';
-import pool from '/app/connection'; 
+import pool from '/app/connection';
 
-let currentOnlineUsers = 0; // Начальное количество пользователей
-const clients = []; // Массив для хранения клиентов SSE
-let isScheduled = false; // Флаг, чтобы не запускать задачу повторно
+const clients = [];
+let currentOnlineUsers = 0;
+let isScheduled = false;
+let previousStartTime = null;
+let endStreamTime;
+let firstShowAt;
 
 // Функция для трансляции обновленного количества пользователей
 async function broadcastOnlineUsers(count) {
-  const userPayload = { onlineUsers: count };
-  const userData = `data: ${JSON.stringify(userPayload)}\n\n`;
- 
+  const serverTime = new Date();
+  const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
+
+  let userPayload;
   
+
+  if (serverTime >= switchTime) {
+    userPayload = { onlineUsers: count }; 
+  } else {
+    userPayload = { onlineUsers: clients.length }; // Инициализация значением количества подключенных клиентов
+  }
+  console.log(userPayload);
+  
+  const userData = `data: ${JSON.stringify(userPayload)}\n\n`;
+
   clients.forEach((client) => {
     client.write(userData).catch((err) => {
       const clientIndex = clients.indexOf(client);
@@ -25,9 +39,6 @@ async function broadcastOnlineUsers(count) {
 
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
-  const serverTime = Date.now();
-    const date = new Date(serverTime);  // создаем объект даты
-    console.log(date.toUTCString()); 
   const client = await pool.connect();
   try {
     const queryStream = `
@@ -38,37 +49,42 @@ export async function GET() {
     `;
     const { rows: streamRows } = await client.query(queryStream);
 
-    const startTime = new Date(streamRows[0]?.start_date); // Время начала стрима
-    const videoDuration = streamRows[0]?.video_duration * 1000; // Продолжительность видео
+    const startTime = new Date(streamRows[0]?.start_date);
+    const videoDuration = streamRows[0]?.video_duration * 1000;
     const scenarioId = streamRows[0]?.scenario_id;
 
-    // Получаем данные сценария для онлайн пользователей
-    const queryScenario = `
-      SELECT scenario_online
-      FROM scenario
-      WHERE id = $1
-    `;
-    const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-    const scenarioOnline = scenarioRows[0]?.scenario_online || [];
-
-    // Останавливаем все запланированные задачи, если они есть
-    // console.log('Остановка предыдущего планирования');
-    schedule.gracefulShutdown().then(() => {
-      currentOnlineUsers = 0;
+    if (previousStartTime?.getTime() !== startTime.getTime()) {
       isScheduled = false;
-      // console.log('Задачи сброшены, перепланируем новое расписание');
+      previousStartTime = startTime;
+    }
 
-      // Перепланировка задач сразу же
+    if (!isScheduled) {
+      isScheduled = true;
+      const queryScenario = `
+        SELECT scenario_online
+        FROM scenario
+        WHERE id = $1
+      `;
+      const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+      const scenarioOnline = scenarioRows[0]?.scenario_online || [];
+      firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
+      const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
+
+      // Проверяем и планируем задачу для переключения онлайн-пользователей
+      if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
+        schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
+          currentOnlineUsers = clients.length; // Обновляем перед запуском
+          broadcastOnlineUsers(currentOnlineUsers);
+        });
+      }
+
+      // Планируем задачи для каждого времени отображения пользователей
       scenarioOnline.forEach(({ showAt, count }) => {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
 
-        // Если время задачи в прошлом
-        if (scheduleTime < new Date()) {
-          currentOnlineUsers = count;
-          broadcastOnlineUsers(currentOnlineUsers);
-        } else {
-          // Планируем задачу на будущее время
-          schedule.scheduleJob(scheduleTime, () => {
+        // Проверяем, запланирована ли задача для текущего времени
+        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) { 
+          schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
           });
@@ -76,13 +92,13 @@ export async function GET() {
       });
 
       // Планируем завершение задачи по времени окончания видео
-      const endStreamTime = new Date(startTime.getTime() + videoDuration);
-      schedule.scheduleJob(endStreamTime, () => {
-        isScheduled = false; // Сбрасываем флаг для возможности планирования нового стрима
-        currentOnlineUsers = 0; // Сбрасываем количество пользователей после окончания стрима
-        broadcastOnlineUsers(currentOnlineUsers); // Обновляем всех клиентов
-      });
-    });
+      endStreamTime = new Date(startTime.getTime() + videoDuration);
+      if (!schedule.scheduledJobs[`end-stream-${endStreamTime.getTime()}`]) {
+        schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
+          broadcastOnlineUsers(currentOnlineUsers); 
+        });
+      }
+    }
 
     // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();
@@ -90,8 +106,15 @@ export async function GET() {
 
     clients.push(writer);
 
-    // Отправляем начальные данные
-    writer.write(`data: ${JSON.stringify({ onlineUsers: currentOnlineUsers })}\n\n`);
+    const serverTime = new Date();
+    const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
+
+    // Если текущее время после switchTime, отправляем данные из сценария, иначе — реальное количество клиентов
+    if (serverTime >= switchTime) {
+      writer.write(`data: ${JSON.stringify({ onlineUsers: currentOnlineUsers })}\n\n`);
+    } else {
+      writer.write(`data: ${JSON.stringify({ onlineUsers: clients.length })}\n\n`);
+    }
 
     // Убираем клиента при закрытии соединения
     const onClose = () => {
@@ -99,6 +122,17 @@ export async function GET() {
       if (index !== -1) {
         clients.splice(index, 1);
       }
+
+      const serverTime = new Date();
+
+      // Проверяем, если время после switchTime
+      if (serverTime >= switchTime) {
+        currentOnlineUsers = currentOnlineUsers; // Оставляем количество пользователей из сценария
+      } else {
+        currentOnlineUsers = clients.length; // Обновляем количество реальных подключенных клиентов
+      }
+
+      broadcastOnlineUsers(currentOnlineUsers);
     };
     writer.closed.then(onClose, onClose);
 

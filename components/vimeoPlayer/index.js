@@ -33,7 +33,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayer(newPlayer);
 
       newPlayer.on('play', () => {
-        console.log('Воспроизведение началось');
         
         newPlayer.setCurrentTime(delayTime).then(() => {
           console.log(`Видео началось с времени: ${delayTime} секунд`);
@@ -132,11 +131,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       }
     };
   
-    // Добавляем слушатель событий focus и blur
     window.addEventListener('blur', handleTabChange);
     window.addEventListener('focus', handleTabChange);
-  
-    // Очищаем слушатель при размонтировании компонента
     return () => {
       window.removeEventListener('blur', handleTabChange);
       window.removeEventListener('focus', handleTabChange);

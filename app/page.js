@@ -199,6 +199,7 @@ const HomePage = () => {
 
   const handleClientsCount = (e) => {
     setUserOnline(e);
+    
   };
   useEffect(() => {
     // Функция для установки высоты видимой области экрана

@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import styles from './index.module.css';
 import Image from 'next/image';
 import Link from 'next/link';
-const Header = ({ isAdmin,userOnline }) => {
+const Header = ({ isAdmin, userOnline }) => {
   const router = useRouter();
 
   const handleLogout = async (event) => {
