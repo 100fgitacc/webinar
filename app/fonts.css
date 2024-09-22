@@ -13,5 +13,7 @@
 }
 @font-face {
     font-family: 'Bicubik';
-    src: url('/assets/fonts/Bicubik.otf') format('opentype');
+    src: url('/assets/fonts/Bicubik.otf') format('opentype'),
+        url('/assets/fonts/Bicubik.woff') format('woff'),
+        url('/assets/fonts/Bicubik.ttf') format('ttf');
 }

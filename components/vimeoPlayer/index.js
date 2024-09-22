@@ -128,7 +128,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         setWindowWidth(window.innerWidth);
       };
 
-      // Функция для обработки смены вкладки (потери фокуса)
       const handleTabChange = () => {
         if (window.innerWidth < 1024 && !document.hasFocus()) {
           if (player) {

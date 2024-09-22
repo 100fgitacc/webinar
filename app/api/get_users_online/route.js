@@ -21,7 +21,7 @@ async function broadcastOnlineUsers(count) {
   if (serverTime >= switchTime) {
     userPayload = { onlineUsers: count }; 
   } else {
-    userPayload = { onlineUsers: clients.length }; // Инициализация значением количества подключенных клиентов
+    userPayload = { onlineUsers: clients.length }; 
   }
   
   const userData = `data: ${JSON.stringify(userPayload)}\n\n`;
