@@ -166,7 +166,7 @@
     padding: 10px 15px;
     height: calc(var(--vh)* 100);
     overflow: hidden;
-    /* position: fixed; */
+    border: 1px solid blueviolet;
   }
   .player-container, .comments-container {
       width: 100%;

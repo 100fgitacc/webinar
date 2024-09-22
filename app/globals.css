@@ -11,7 +11,7 @@ ol[class] {
   padding: 0;
 }
 body {
-  min-height: calc(var(--vh)* 110);
+  min-height: 100vh;
   scroll-behavior: smooth;
   text-rendering: optimizeSpeed;
   font-family: "Geologica", sans-serif;
@@ -153,5 +153,6 @@ div:where(.swal2-container) .swal2-html-container{
 @media screen and (max-width: 576px) {
   body {
     overflow: hidden;
+    border: 1px solid red;
   }
 }

@@ -233,6 +233,36 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     [messageId]: !prev[messageId],
   }));
 };
+ // Функция для отслеживания изменения ширины окна
+ useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWindowWidth(window.innerWidth);
+
+      const handleResize = () => setWindowWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
+  const [windowWidth, setWindowWidth] = useState(0);
+  // Функция для изменения состояния первого ребенка body при фокусе на textarea
+  const handleFocus = () => {
+    if (windowWidth < 595 && document.body.firstElementChild) {
+      document.body.firstElementChild.style.position = 'fixed';
+      document.body.firstElementChild.style.width = '100%';
+    }
+  };
+
+  // Функция для сброса состояния первого ребенка body при потере фокуса
+  const handleBlur = () => {
+    if (windowWidth < 595 && document.body.firstElementChild) {
+      document.body.firstElementChild.style.position = '';
+      document.body.firstElementChild.style.width = '';
+    }
+  };
+
+
   return (
     <div className={styles['chat-wrapper']}>
       <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll} >
@@ -285,6 +315,8 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
               placeholder='Ваш комментарий' 
               value={comment} 
               onChange={handleCommentChange}
+              onFocus={handleFocus} 
+              onBlur={handleBlur} 
             ></textarea>
           </div>
           <button type='button' className={styles.btn} onClick={handleMessageSend}>
