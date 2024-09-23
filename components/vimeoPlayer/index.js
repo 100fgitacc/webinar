@@ -25,8 +25,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         id: startStream.video_id,
         width: playerWidth ,
         height:  playerWidth * (480 / 855), 
-        controls: true,
-        // controls: false,
+        // controls: true,
+        controls: false,
         keyboard: false,
         quality,
         
@@ -81,29 +81,38 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
   }, [startStream, dataFetched]);
   const delayTimeRef = useRef(delayTime);
+  
   useEffect(() => {
     if (player) {
-     
-  
       const handleSeeked = (event) => {
         console.log(`Видео перемотано на время: ${event.seconds} секунд`);
-        
-        player.setCurrentTime(delayTimeRef.current).then(() => {
-          console.log(`Видео принудительно перемотано на время: ${delayTimeRef.current} секунд`);
-        }).catch((error) => {
-          console.error('Ошибка при установке времени:', error);
+
+        player.getCurrentTime().then((currentTime) => {
+          const delayTime = delayTimeRef.current;
+
+          const timeDifference = Math.abs(currentTime - delayTime);
+
+          if (timeDifference > 1) {
+            player.setCurrentTime(delayTime).then(() => {
+              console.log(`Видео принудительно перемотано на время: ${delayTime} секунд`);
+            }).catch((error) => {
+              console.error('Ошибка при установке времени:', error);
+            });
+          }
         });
       };
+
       player.on('seeked', handleSeeked);
-  
+
       return () => {
         player.off('seeked', handleSeeked);
       };
     }
   }, [player]);
+
   useEffect(() => {
     delayTimeRef.current = delayTime;
-  }, [delayTime])
+  }, [delayTime]);
   console.log(delayTime);
   
   const handlePlayClick = () => {
