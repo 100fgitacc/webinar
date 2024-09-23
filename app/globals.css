@@ -151,7 +151,7 @@ div:where(.swal2-container) .swal2-html-container{
   padding: 0 !important;
 }
 @media screen and (max-width: 576px) {
-  body {
+  /* body {
     overflow: hidden;
-  }
+  } */
 }
