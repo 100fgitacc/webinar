@@ -10,13 +10,14 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100%;
 }
 
 .inner {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  height: calc(var(--vh) * 97);
+  /* height: calc(var(--vh) * 97); */
 }
 
 .container {
@@ -152,7 +153,7 @@
     margin-left: 0;
     max-width: unset;
     width: 100%;
-    max-height: calc(var(--vh)* 80);
+    /* max-height: calc(var(--vh)* 80); */
      
   }
   
@@ -164,7 +165,7 @@
 @media screen and (max-width: 576px) {
   .homePage {
     padding: 10px 15px;
-    height: calc(var(--vh)* 100);
+    /* height: calc(var(--vh)* 100); */
     overflow: hidden;
     /* position: fixed; */
   }
@@ -174,7 +175,7 @@
   }
   .container {
     padding-top: 15px;
-    height: calc(var(--vh)* 90);
+    /* height: calc(var(--vh)* 90); */
     margin-bottom: auto;
   }
   .main-title {

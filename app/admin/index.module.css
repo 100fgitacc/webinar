@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(var(--vh) * 97);
+  /* height: calc(var(--vh) * 97); */
   background-color: #181a40;
 }
 
