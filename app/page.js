@@ -89,7 +89,6 @@ const HomePage = () => {
         if (streamStatus !== 'ended') {
           updatedState.streamEndSeconds = streamEndSeconds;
         }
-        startInternalTimer(startTime, button_show_at);
         return updatedState;
       });
   
@@ -210,17 +209,11 @@ const HomePage = () => {
   }, []);
   const [showButton, setShowButton] = useState(false);
 
-  const startInternalTimer = (startTime, buttonShowAt) => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const elapsedTime = Math.max((now - startTime) / 1000, 0); 
-      
-      if (elapsedTime >= buttonShowAt) {
-        setShowButton(true);
-        clearInterval(interval);
-      }
-    }, 1000);
-  };
+  useEffect(() => {
+    if (delayTime >= startStream.button_show_at) {
+      setShowButton(true);
+    }
+  }, [delayTime]);
 
   const [refreshStreamData, setRefreshStreamData] = useState(null);
 
