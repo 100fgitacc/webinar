@@ -17,7 +17,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
-  
+  console.log(delayTime);
   useEffect(() => {
     
     if (playerRef.current && !player) {
@@ -25,16 +25,23 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         id: startStream.video_id,
         width: playerWidth ,
         height:  playerWidth * (480 / 855), 
+        // controls: false,
         controls: true,
-        controls: false,
         keyboard: false,
         quality,
+        playsinline: true 
         
       });
 
       setPlayer(newPlayer);
 
-      newPlayer.on('play', ({}) => {});
+      newPlayer.on('play', () => {
+        newPlayer.setCurrentTime(delayTime).then(() => {
+          console.log(`Видео началось с времени: ${delayTime} секунд`);
+        }).catch((error) => {
+          console.error('Ошибка при установке времени воспроизведения:', error);
+        });
+      });
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
         if (streamStatus === 'inProgress') {
@@ -43,13 +50,22 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
           });
         }
       });
-     
+
       newPlayer.on('timeupdate', ({ seconds }) => {
         if (timings.includes(Math.round(seconds))) {
           setShowPopup(true);
           setTimeout(() => setShowPopup(false), 3000);
         }
       });
+      const handleSeeked = ({ seconds }) => {
+        console.log(`Видео было перемотано на: ${seconds} секунд`);
+        // Если пользователь пытается перемотать, возвращаем на delayTime
+        if (Math.round(seconds) !== Math.round(delayTime)) {
+          newPlayer.setCurrentTime(delayTime); // Возвращаем время на delayTime
+        }
+      };
+  
+      newPlayer.on('seeked', handleSeeked);
 
       newPlayer.on('ended', () => {
         setStreamStatus('ended');
@@ -81,27 +97,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
   }, [startStream, dataFetched]);
 
-  useEffect(() => {
-    if (player) {
-      const handleSeeked = (event) => {
-        console.log(`Видео перемотано на время: ${event.seconds} секунд`);
-        player.setCurrentTime(delayTime).then(() => {
-          console.log(`Видео принудительно перемотано на время: ${delayTime} секунд`);
-        }).catch((error) => {
-          console.error('Ошибка при установке времени:', error);
-        });
-      };
-  
-      // Добавляем обработчик, если player существует
-      player.on('seeked', handleSeeked);
-  
-      // Очистка обработчика при размонтировании или изменении зависимости
-      return () => {
-        player.off('seeked', handleSeeked);
-      };
-    }
-  }, [delayTime, player]);
-  
   const handlePlayClick = () => {
     if (player) {
       player.play().then(() => {
@@ -134,14 +129,14 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayerWidth(width); 
     }
   }, [playerRef]);
-  const [windowWidth, setWindowWidth] = useState(0);
+  // const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Функция для изменения состояния ширины окна
-      const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-      };
+      // const handleResize = () => {
+      //   setWindowWidth(window.innerWidth);
+      // };
 
       const handleTabChange = () => {
         if (window.innerWidth < 1024 && !document.hasFocus()) {
@@ -156,21 +151,22 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       };
 
       // Устанавливаем начальное значение ширины окна
-      setWindowWidth(window.innerWidth);
+      // setWindowWidth(window.innerWidth);
 
       // Добавляем обработчики событий для смены фокуса и изменения размера окна
-      window.addEventListener('resize', handleResize);
+      // window.addEventListener('resize', handleResize);
       window.addEventListener('blur', handleTabChange);
       window.addEventListener('focus', handleTabChange);
 
       // Удаляем обработчики при размонтировании компонента
       return () => {
-        window.removeEventListener('resize', handleResize);
+        // window.removeEventListener('resize', handleResize);
         window.removeEventListener('blur', handleTabChange);
         window.removeEventListener('focus', handleTabChange);
       };
     }
   }, [player, isPlayed]);
+
 
   const renderStreamStatus = () => {
     switch (streamStatus) {
