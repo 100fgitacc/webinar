@@ -28,6 +28,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         controls: false,
         keyboard: false,
         quality,
+        playsinline: true 
         
       });
 
@@ -119,14 +120,14 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       setPlayerWidth(width); 
     }
   }, [playerRef]);
-  const [windowWidth, setWindowWidth] = useState(0);
+  // const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Функция для изменения состояния ширины окна
-      const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-      };
+      // const handleResize = () => {
+      //   setWindowWidth(window.innerWidth);
+      // };
 
       const handleTabChange = () => {
         if (window.innerWidth < 1024 && !document.hasFocus()) {
@@ -141,21 +142,41 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       };
 
       // Устанавливаем начальное значение ширины окна
-      setWindowWidth(window.innerWidth);
+      // setWindowWidth(window.innerWidth);
 
       // Добавляем обработчики событий для смены фокуса и изменения размера окна
-      window.addEventListener('resize', handleResize);
+      // window.addEventListener('resize', handleResize);
       window.addEventListener('blur', handleTabChange);
       window.addEventListener('focus', handleTabChange);
 
       // Удаляем обработчики при размонтировании компонента
       return () => {
-        window.removeEventListener('resize', handleResize);
+        // window.removeEventListener('resize', handleResize);
         window.removeEventListener('blur', handleTabChange);
         window.removeEventListener('focus', handleTabChange);
       };
     }
   }, [player, isPlayed]);
+
+  useEffect(() => {
+    if (player) {
+      let previousTime = delayTime;
+  
+      const handleTimeUpdate = ({ seconds }) => {
+        if (seconds > previousTime) {
+          player.setCurrentTime(previousTime); // Возвращаем к предыдущему времени, если пытаются перемотать вперед
+        } else {
+          previousTime = seconds; // Обновляем предыдущее время
+        }
+      };
+  
+      player.on('timeupdate', handleTimeUpdate);
+  
+      return () => {
+        player.off('timeupdate', handleTimeUpdate);
+      };
+    }
+  }, [player, delayTime]);
 
   const renderStreamStatus = () => {
     switch (streamStatus) {
