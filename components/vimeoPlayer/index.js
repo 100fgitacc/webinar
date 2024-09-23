@@ -26,7 +26,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         width: playerWidth ,
         height:  playerWidth * (480 / 855), 
         controls: true,
-        controls: false,
+        // controls: false,
         keyboard: false,
         quality,
         
@@ -80,27 +80,31 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         });
     }
   }, [startStream, dataFetched]);
-
+  const delayTimeRef = useRef(delayTime);
   useEffect(() => {
     if (player) {
+     
+  
       const handleSeeked = (event) => {
         console.log(`Видео перемотано на время: ${event.seconds} секунд`);
-        player.setCurrentTime(delayTime).then(() => {
-          console.log(`Видео принудительно перемотано на время: ${delayTime} секунд`);
+        
+        player.setCurrentTime(delayTimeRef.current).then(() => {
+          console.log(`Видео принудительно перемотано на время: ${delayTimeRef.current} секунд`);
         }).catch((error) => {
           console.error('Ошибка при установке времени:', error);
         });
       };
-  
-      // Добавляем обработчик, если player существует
       player.on('seeked', handleSeeked);
   
-      // Очистка обработчика при размонтировании или изменении зависимости
       return () => {
         player.off('seeked', handleSeeked);
       };
     }
-  }, [delayTime, player]);
+  }, [player]);
+  useEffect(() => {
+    delayTimeRef.current = delayTime;
+  }, [delayTime])
+  console.log(delayTime);
   
   const handlePlayClick = () => {
     if (player) {
