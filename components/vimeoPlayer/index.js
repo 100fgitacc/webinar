@@ -113,6 +113,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   useEffect(() => {
     delayTimeRef.current = delayTime;
   }, [delayTime]);
+  
   console.log(delayTime);
   
   const handlePlayClick = () => {

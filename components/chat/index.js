@@ -231,7 +231,6 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     [messageId]: !prev[messageId],
   }));
 };
-  console.log(expandedMessages);
   
   return (
     <div className={styles['chat-wrapper']}>

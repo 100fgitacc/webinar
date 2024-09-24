@@ -229,9 +229,9 @@ export async function POST(request) {
       await updatePinnedStatus(pinnedMessageId, pinned);
     }else{
       let message = newMessages[0];
-      message.id = new Date().now();
+      message.id = Date.now();
       message.sending_time = new Date().toISOString();
-
+      
       await saveMessageToDb(message);
 
       broadcastMessages([message], sender);
