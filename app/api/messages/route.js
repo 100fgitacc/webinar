@@ -31,6 +31,7 @@ export async function GET() {
     }
 
     if (!isScheduled) {
+      console.log(`Планируем задачи для стрима, начавшегося в ${startTime}`);
       isScheduled = true;
       
       const queryScenario = `
@@ -45,7 +46,9 @@ export async function GET() {
         const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
         
         if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
+          
           schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
+
             const taskClient = await pool.connect(); 
             try {
               const message = {
@@ -67,13 +70,17 @@ export async function GET() {
           });
         } 
         // else {
-        //   console.log(`Задание для сообщения "${text}" уже существует, пропуск...`);
+        //   console.log(`Задача для сообщения "${text}" уже запланирована, пропускаем.`);
         // }
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
       if (!schedule.scheduledJobs['saveAndClearMessages']) {
+        console.log(`Планируем задачу очистки сообщений на время ${new Date(videoEndTime)}`);
+        
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
+          console.log(`Выполняем задачу по сохранению и очистке сообщений`);
+          
           const taskClient = await pool.connect(); 
           try {
             const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
@@ -85,23 +92,25 @@ export async function GET() {
             `;
             await taskClient.query(saveQuery, [JSON.stringify(messages)]);
         
-            console.log('Все сообщения в таблице archived_messages.');
+            console.log('Все сообщения сохранены в таблице archived_messages.');
         
-            // Логируем установку задачи на удаление через 
+            // Логируем установку задачи на удаление через 5 секунд
             const clearMessagesTime = new Date(Date.now() + 5000);
             console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
+            
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
               console.log('Начинаю задачу по удалению сообщений');
+              
               const deleteClient = await pool.connect(); 
               try {
-                console.log('Начинаю удаление сообщений из таблицы messages...');
+                console.log('Удаляем сообщения из таблицы messages...');
                 
                 const deleteQuery = 'DELETE FROM messages';
                 const result = await deleteClient.query(deleteQuery);
                 
                 console.log(`Удалено строк: ${result.rowCount}`);
                 console.log('Все сообщения успешно удалены из таблицы messages.');
-                
+                broadcastMessages([], null, true);
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {
@@ -115,13 +124,13 @@ export async function GET() {
             taskClient.release(); 
           }
         });
-      } 
-      // else {
-      //   console.log('Задача "saveAndClearMessages" уже существует, пропуск...');
-      // }
+      } else {
+        console.log('Задача "saveAndClearMessages" уже существует, пропускаем.');
+      }
     }
 
-    
+    console.log('Текущие запланированные задачи:', Object.keys(schedule.scheduledJobs));
+
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 
@@ -160,6 +169,7 @@ export async function POST(request) {
       await updatePinnedStatus(pinnedMessageId, pinned);
     }else{
       let message = newMessages[0];
+      message.id = new Date().now();
       message.sending_time = new Date().toISOString();
 
       await saveMessageToDb(message);
@@ -204,14 +214,15 @@ async function updateAndBroadcastPinnedStatus(messageId, pinned) {
     console.error('Ошибка при обновлении и трансляции статуса закрепленного сообщения:', error);
   }
 }
-async function broadcastMessages(newMessages = [], excludeSender) {
+async function broadcastMessages(newMessages = [], excludeSender, streamEnded = false) {
   try {
     const messagePayload = {
       messages: excludeSender
         ? newMessages.filter(msg => msg.sender !== excludeSender)
         : newMessages.map(msg => ({
             ...msg,
-            id: msg.id.toString() 
+            id: msg.id.toString() ,
+            streamEnded
           })),
       clientsCount: clients.length
     };
