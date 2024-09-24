@@ -11,7 +11,7 @@ ol[class] {
   padding: 0;
 }
 body {
-  min-height: 100vh;
+  /* min-height: 100vh; */
   scroll-behavior: smooth;
   text-rendering: optimizeSpeed;
   font-family: "Geologica", sans-serif;
