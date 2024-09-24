@@ -231,6 +231,8 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     [messageId]: !prev[messageId],
   }));
 };
+  console.log(expandedMessages);
+  
   return (
     <div className={styles['chat-wrapper']}>
       <div className={styles['chat-inner']} ref={chatContainerRef} onScroll={handleScroll} >
@@ -268,6 +270,9 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
                   ))}
                 </p>
               </div>
+              {mess.pinned && (
+                <div className={`${styles['toggle-icon']} ${expandedMessages[mess.id] ? styles['toggle-icon-top'] : styles['toggle-icon-bottom']}`}></div>
+              )}
             </div>
           ))
         ) : (

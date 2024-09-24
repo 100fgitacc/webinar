@@ -13,7 +13,7 @@
   .chat-inner {
     position: relative;
     height: 100%;
-    /* max-height: calc(var(--vh) * 16); */
+    max-height: calc(var(--vh) * 16);
     max-height: 510px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -156,7 +156,26 @@
   max-height: 510px; 
   transition: max-height 0.5s ease;
 }
-
+.toggle-icon{
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  width: 18px;
+  height: 18px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+  transform-origin: center;
+}
+.toggle-icon-top{
+  background-image: url('/assets/img/arrow.png');
+  transform: rotate(270deg);
+}
+.toggle-icon-bottom{
+  background-image: url('/assets/img/arrow.png');
+}
 
 @media screen and (max-width: 968px) {
   .chat-wrapper{

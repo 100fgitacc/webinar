@@ -25,12 +25,14 @@ export async function GET() {
       throw new Error('Не удалось найти время начала или ID сценария');
     }
 
-    if (previousStartTime !== startTime) {
+   
+    if (previousStartTime?.getTime() !== startTime.getTime() && startTime.getTime() > Date.now()) {
+      console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
     }
 
-    if (!isScheduled) {
+    if (!isScheduled && startTime.getTime() > Date.now()) {
       console.log(`Планируем задачи для стрима, начавшегося в ${startTime}`);
       isScheduled = true;
       
@@ -127,10 +129,68 @@ export async function GET() {
       } else {
         console.log('Задача "saveAndClearMessages" уже существует, пропускаем.');
       }
+      if (!schedule.scheduledJobs['unpinMessage']) {
+        try {
+          const queryScenario = `
+            SELECT scenario_unpin
+            FROM scenario
+            WHERE id = $1
+          `;
+          
+          const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+                
+          const unpinSchedule = scenarioRows[0]?.scenario_unpin || '[]';
+      
+          unpinSchedule[0]?.time.forEach((seconds, index) => {
+            const unpinTime = new Date(startTime.getTime() + seconds * 1000);
+      
+            if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
+              schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
+                const taskClient = await pool.connect();
+                try {
+                  
+                  const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
+                  const { rows: messageRows } = await taskClient.query(query);
+                  if (messageRows.length > 0) {
+                    const messageId = messageRows[0].id;
+      
+                    await updatePinnedStatus(messageId, false); 
+                  }else {
+                    console.log('Нет закрепленных сообщений для открепления');
+                  }
+      
+                } catch (error) {
+                  console.error('Ошибка при откреплении сообщения:', error);
+                } finally {
+                  taskClient.release();
+                }
+              });
+            } 
+            // else {
+            //   console.log(`Задача на время ${unpinTime} уже существует, пропускаем`);
+            // }
+          });
+        } catch (error) {
+          console.error('Ошибка при планировании задач открепления сообщений:', error);
+        }
+      }
+      // else {
+      //   console.log('Задача уже существует, пропускаем.');
+      // }
     }
+    const scheduledJobs = schedule.scheduledJobs;
+    Object.keys(scheduledJobs).forEach(jobName => {
+      const job = scheduledJobs[jobName];
+      const nextInvocation = job.nextInvocation();
+      
+      if (nextInvocation === null) {
+        job.cancel(); 
+        delete scheduledJobs[jobName]; 
+      }
+    });
 
-    console.log('Текущие запланированные задачи:', Object.keys(schedule.scheduledJobs));
-
+    const jobCount = Object.keys(scheduledJobs).length;
+    console.log(`Количество текущих запланированных задач: ${jobCount}`);
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
 

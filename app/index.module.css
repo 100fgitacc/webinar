@@ -168,6 +168,7 @@
     /* height: calc(var(--vh)* 100); */
     overflow: hidden;
     /* position: fixed; */
+    height: 100%;
   }
   .player-container, .comments-container {
       width: 100%;

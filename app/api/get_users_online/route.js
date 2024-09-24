@@ -52,15 +52,13 @@ export async function GET() {
     const videoDuration = streamRows[0]?.video_duration * 1000;
     const scenarioId = streamRows[0]?.scenario_id;
 
-    if (previousStartTime?.getTime() !== startTime.getTime()) {
+    if (previousStartTime?.getTime() !== startTime.getTime() && startTime.getTime() > Date.now()) {
       isScheduled = false;
       previousStartTime = startTime;
     }
 
-    console.log('isScheduled ', isScheduled)
 
-    if (!isScheduled) {
-      console.log('Планируем!')
+    if (!isScheduled && startTime.getTime() > Date.now()) {
       isScheduled = true;
       const queryScenario = `
         SELECT scenario_online
@@ -72,10 +70,9 @@ export async function GET() {
       firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
 
-      // Проверяем и планируем задачу для переключения онлайн-пользователей
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
-          currentOnlineUsers = clients.length; // Обновляем перед запуском
+          currentOnlineUsers = clients.length; 
           broadcastOnlineUsers(currentOnlineUsers);
         });
       }
@@ -100,7 +97,7 @@ export async function GET() {
         });
       }
     }
-
+    
     // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
