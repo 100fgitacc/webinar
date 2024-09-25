@@ -44,7 +44,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       });
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
-        if (streamStatus === 'inProgress') {
+        if (streamStatus === 'inProcess') {
           newPlayer.setCurrentTime(delayTime).catch((error) => {
             console.error('Error setting current time:', error);
           });
@@ -176,7 +176,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
             <>Трансляция начнётся через: {startStream.countdown}</>
           </div>
         );
-      case 'inProgress':
+      case 'inProcess':
         return (
           <>
             <div ref={playerRef} className={styles.player}>

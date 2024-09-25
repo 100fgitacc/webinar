@@ -50,26 +50,24 @@ const HomePage = () => {
   
       const startTime = new Date(start_date);
   
-      if (isNaN(startTime.getTime())) {
-        console.error('Invalid start date');
-        return;
-      }
-  
       const now = new Date(serverTime);
       const duration = video_duration || 0;
       const streamEndTime = new Date(startTime);
       streamEndTime.setSeconds(streamEndTime.getSeconds() + duration);
       const streamEndSeconds = streamEndTime.getTime();
-  
+      
       let streamStatus = '';
       if (now < startTime) {
         streamStatus = 'notStarted';
-      } else if (now > streamEndSeconds) {
+      } 
+      else if (now > streamEndSeconds) {
         streamStatus = 'ended';
-      } else {
-        streamStatus = 'inProgress';
+      }else {
+        streamStatus = 'inProcess';
       }
-  
+     
+      console.log('Задаём статус:', streamStatus);
+      
       const clientTimeAtStart = Date.now();
       const serverTimeAtStart = new Date(serverTime).getTime();
       const timeDifference = clientTimeAtStart - serverTimeAtStart;
@@ -102,7 +100,7 @@ const HomePage = () => {
             setStartStream(prevState => ({
               ...prevState,
               countdown: '00:00:00',
-              streamStatus: 'inProgress'
+              streamStatus: 'inProcess'
             }));
           } else {
             const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
@@ -120,8 +118,9 @@ const HomePage = () => {
       console.error('Error initializing stream:', error);
     }
   };
-  
+ 
 
+  const [refreshStreamData, setRefreshStreamData] = useState(false);
   useEffect(() => {
     if (startStream.startTime && startStream.timeDifference) {
       
@@ -136,7 +135,7 @@ const HomePage = () => {
       
       return () => clearInterval(interval);
     }
-  }, [startStream.startTime, startStream.timeDifference]);
+  }, [startStream.startTime, startStream.timeDifference, refreshStreamData]);
     
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -215,29 +214,19 @@ const HomePage = () => {
     }
   }, [delayTime]);
 
-  const [refreshStreamData, setRefreshStreamData] = useState(null);
 
   const handleRefreshStreamData = (e) =>{
     setRefreshStreamData(e);
+    console.log(e);
+    
   }
   
   useEffect(() => {
     if (refreshStreamData === true) {
+      console.log('Стрим завершен, запрашивает новые данные');
+      
       initializeStream(); 
       
-      const eventSource = new EventSource('/api/messages');
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-        } catch (error) {
-          console.error('Ошибка при обработке сообщений SSE:', error);
-        }
-      };
-    
-      return () => {
-        eventSource.close();
-      };
     }
     setRefreshStreamData(false);
   }, [refreshStreamData]);

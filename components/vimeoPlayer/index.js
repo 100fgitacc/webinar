@@ -6,6 +6,7 @@ import axios from 'axios';
 
 const VimeoPlayer = ({ startStream, delayTime }) => {
   const playerRef = useRef(null);
+  const [test, settest] = useState(null);
   const containerRef = useRef(null);
   const [player, setPlayer] = useState(null);
   const [isPlayed, setIsPlayed] = useState(false);
@@ -17,11 +18,12 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
+  console.log(player);
   
   useEffect(() => {
     
-    if (playerRef.current && !player) {
-      const newPlayer = new Player(playerRef.current, {
+    if (playerRef.current || test && !player) {
+      const newPlayer = new Player(playerRef.current || test, {
         id: startStream.video_id,
         width: playerWidth ,
         height:  playerWidth * (480 / 855), 
@@ -31,13 +33,13 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         quality,
         
       });
-
+      settest(playerRef.current);
       setPlayer(newPlayer);
 
       newPlayer.on('play', ({}) => {});
       newPlayer.on('loaded', () => {
         console.log('Плеер загружен');
-        if (streamStatus === 'inProgress') {
+        if (streamStatus === 'inProcess') {
           newPlayer.setCurrentTime(delayTime).catch((error) => {
             console.error('Error setting current time:', error);
           });
@@ -53,6 +55,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
       newPlayer.on('ended', () => {
         setStreamStatus('ended');
+        setIsPlayed(false);
       });
 
       newPlayer.on('error', (error) => {
@@ -194,7 +197,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
             <>Трансляция начнётся через: {startStream.countdown}</>
           </div>
         );
-      case 'inProgress':
+      case 'inProcess':
         return (
           <>
             <div ref={playerRef} className={styles.player}>

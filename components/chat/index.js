@@ -21,14 +21,28 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
   useEffect(() => {
     const eventSource = new EventSource('/api/messages');
   
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
+  
         if (data.streamEnded) {
+          console.log('data.streamEnded', data.streamEnded);
+          
+          // Выполнить GET запрос для получения сообщений
+          try {
+            const response = await fetch('/api/messages');
+            const result = await response.json();
+  
+            // Очистить старые сообщения и обновить новыми
+           
+          } catch (error) {
+            console.error('Ошибка при получении сообщений:', error);
+          }
           setVisibleMessages([]);
           setStreamEnded(true);
           return;
         }
+  
         if (data.messageId !== undefined && data.pinned !== undefined) {
           // Если пришло обновление статуса pinned
           setVisibleMessages((prevMessages) => {
@@ -57,6 +71,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
       eventSource.close();
     };
   }, []);
+  
   useEffect(() => {
     const eventSource = new EventSource('/api/get_users_online');
   

@@ -58,45 +58,45 @@ export async function GET() {
     }
 
 
-    if (!isScheduled && startTime.getTime() > Date.now()) {
-      isScheduled = true;
-      const queryScenario = `
-        SELECT scenario_online
-        FROM scenario
-        WHERE id = $1
-      `;
-      const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-      const scenarioOnline = scenarioRows[0]?.scenario_online || [];
-      firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
-      const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
+    // if (!isScheduled && startTime.getTime() > Date.now()) {
+    //   isScheduled = true;
+    //   const queryScenario = `
+    //     SELECT scenario_online
+    //     FROM scenario
+    //     WHERE id = $1
+    //   `;
+    //   const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+    //   const scenarioOnline = scenarioRows[0]?.scenario_online || [];
+    //   firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
+    //   const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
 
-      if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
-        schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
-          currentOnlineUsers = clients.length; 
-          broadcastOnlineUsers(currentOnlineUsers);
-        });
-      }
+    //   if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
+    //     schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
+    //       currentOnlineUsers = clients.length; 
+    //       broadcastOnlineUsers(currentOnlineUsers);
+    //     });
+    //   }
 
-      scenarioOnline.forEach(({ showAt, count }) => {
-        const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
+    //   scenarioOnline.forEach(({ showAt, count }) => {
+    //     const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
 
-        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) { 
-          schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
-            currentOnlineUsers = count;
-            broadcastOnlineUsers(currentOnlineUsers);
-          });
-        }
-      });
+    //     if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) { 
+    //       schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
+    //         currentOnlineUsers = count;
+    //         broadcastOnlineUsers(currentOnlineUsers);
+    //       });
+    //     }
+    //   });
 
-      endStreamTime = new Date(startTime.getTime() + videoDuration);
-      if (!schedule.scheduledJobs[`end-stream-${endStreamTime.getTime()}`]) {
-        const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
-          broadcastOnlineUsers(currentOnlineUsers);
-          endStreamJob.cancel();
-          console.log('Задача завершения стрима была отменена');
-        });
-      }
-    }
+    //   endStreamTime = new Date(startTime.getTime() + videoDuration);
+    //   if (!schedule.scheduledJobs[`end-stream-${endStreamTime.getTime()}`]) {
+    //     const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
+    //       broadcastOnlineUsers(currentOnlineUsers);
+    //       endStreamJob.cancel();
+    //       console.log('Задача завершения стрима была отменена');
+    //     });
+    //   }
+    // }
     
     // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();

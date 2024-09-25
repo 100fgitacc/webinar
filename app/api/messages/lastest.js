@@ -10,16 +10,13 @@ export async function GET() {
   const client = await pool.connect();
   try {
     const queryStream = `
-      SELECT id, start_date, scenario_id, video_duration
+      SELECT start_date, scenario_id, video_duration
       FROM streams
-      WHERE ended = false
-      AND start_date >= NOW() 
-      ORDER BY start_date ASC
+      ORDER BY start_date DESC
       LIMIT 1
     `;
     const { rows: streamRows } = await client.query(queryStream);
-    console.log('Текущий стрим:',streamRows);
-    
+
     const startTime = streamRows[0]?.start_date; 
     const scenarioId = streamRows[0]?.scenario_id;
     const videoDuration = streamRows[0]?.video_duration * 1000;
@@ -35,7 +32,7 @@ export async function GET() {
       previousStartTime = startTime; 
     }
 
-    if (!isScheduled) {
+    if (!isScheduled && startTime.getTime() > Date.now()) {
       console.log(`Планируем задачи для стрима, начавшегося в ${startTime}`);
       isScheduled = true;
       
@@ -80,8 +77,6 @@ export async function GET() {
       });
 
       const videoEndTime = new Date(startTime).getTime() + videoDuration;
-      const streamId = streamRows[0]?.id;
-
       if (!schedule.scheduledJobs['saveAndClearMessages']) {
         console.log(`Планируем задачу очистки сообщений на время ${new Date(videoEndTime)}`);
         
@@ -97,8 +92,9 @@ export async function GET() {
               INSERT INTO archived_messages (messages)
               VALUES ($1)
             `;
-             const result = await taskClient.query(saveQuery, [JSON.stringify(messages)]);
-              console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
+            await taskClient.query(saveQuery, [JSON.stringify(messages)]);
+        
+            console.log('Все сообщения сохранены в таблице archived_messages.');
         
             // Логируем установку задачи на удаление через 5 секунд
             const clearMessagesTime = new Date(Date.now() + 5000);
@@ -116,16 +112,7 @@ export async function GET() {
                 
                 console.log(`Удалено строк: ${result.rowCount}`);
                 console.log('Все сообщения успешно удалены из таблицы messages.');
-                const updateStreamQuery = `
-                    UPDATE streams
-                    SET ended = true
-                    WHERE id = $1
-                `;
-                await deleteClient.query(updateStreamQuery, [streamId]);
-                console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
                 broadcastMessages([], null, true);
-                console.log('afasfasfasfasafas');
-                
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {
@@ -153,37 +140,36 @@ export async function GET() {
           const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
                 
           const unpinSchedule = scenarioRows[0]?.scenario_unpin || '[]';
-            if (Array.isArray(unpinSchedule) && unpinSchedule.length > 0 && Array.isArray(unpinSchedule[0]?.time)) {
-            unpinSchedule[0]?.time.forEach((seconds, index) => {
-              const unpinTime = new Date(startTime.getTime() + seconds * 1000);
-        
-              if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
-                schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
-                  const taskClient = await pool.connect();
-                  try {
-                    
-                    const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
-                    const { rows: messageRows } = await taskClient.query(query);
-                    if (messageRows.length > 0) {
-                      const messageId = messageRows[0].id;
-        
-                      await updatePinnedStatus(messageId, false); 
-                    }else {
-                      console.log('Нет закрепленных сообщений для открепления');
-                    }
-        
-                  } catch (error) {
-                    console.error('Ошибка при откреплении сообщения:', error);
-                  } finally {
-                    taskClient.release();
+      
+          unpinSchedule[0]?.time.forEach((seconds, index) => {
+            const unpinTime = new Date(startTime.getTime() + seconds * 1000);
+      
+            if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
+              schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
+                const taskClient = await pool.connect();
+                try {
+                  
+                  const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
+                  const { rows: messageRows } = await taskClient.query(query);
+                  if (messageRows.length > 0) {
+                    const messageId = messageRows[0].id;
+      
+                    await updatePinnedStatus(messageId, false); 
+                  }else {
+                    console.log('Нет закрепленных сообщений для открепления');
                   }
-                });
-              } 
-              // else {
-              //   console.log(`Задача на время ${unpinTime} уже существует, пропускаем`);
-              // }
-            });
-          }
+      
+                } catch (error) {
+                  console.error('Ошибка при откреплении сообщения:', error);
+                } finally {
+                  taskClient.release();
+                }
+              });
+            } 
+            // else {
+            //   console.log(`Задача на время ${unpinTime} уже существует, пропускаем`);
+            // }
+          });
         } catch (error) {
           console.error('Ошибка при планировании задач открепления сообщений:', error);
         }
@@ -295,13 +281,13 @@ async function broadcastMessages(newMessages = [], excludeSender, streamEnded = 
         ? newMessages.filter(msg => msg.sender !== excludeSender)
         : newMessages.map(msg => ({
             ...msg,
-            id: msg.id.toString() 
+            id: msg.id.toString() ,
+            streamEnded
           })),
-      clientsCount: clients.length,
-      streamEnded: streamEnded 
+      clientsCount: clients.length
     };
     const messageData = `data: ${JSON.stringify(messagePayload)}\n\n`;
-    
+
     clients.forEach((client) => {
       client.write(messageData).catch(err => {
         const clientIndex = clients.indexOf(client);
