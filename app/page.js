@@ -172,6 +172,7 @@ const HomePage = () => {
       }
     }
     initializeStream();
+    getUsersOnline();
   }, []);
  
 
@@ -185,11 +186,6 @@ const HomePage = () => {
     } catch (error) {
       console.error('Logout failed:', error);
     }
-  };
-
-  const handleClientsCount = (e) => {
-    setUserOnline(e);
-    
   };
   useEffect(() => {
     // Функция для установки высоты видимой области экрана
@@ -220,13 +216,29 @@ const HomePage = () => {
     console.log(e);
     
   }
+
+  const getUsersOnline = () => {
+    const eventSource = new EventSource('/api/get_users_online');
+  
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        setUserOnline(data.onlineUsers);
+      } catch (error) {
+        console.error('Ошибка при обработке сообщений SSE:', error);
+      }
+    };
+    return () => {
+      eventSource.close();
+    };
+  }
   
   useEffect(() => {
     if (refreshStreamData === true) {
-      console.log('Стрим завершен, запрашивает новые данные');
-      
+      console.log('Стрим завершен, запрашиваеm новые данные');
       initializeStream(); 
-      
+      getUsersOnline();
     }
     setRefreshStreamData(false);
   }, [refreshStreamData]);
@@ -251,7 +263,7 @@ const HomePage = () => {
             {/* <h3 className={styles['comments-title']}>
               КОММЕНТАРИИ <span>({counter ? counter : 0})</span>
             </h3> */}
-            <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} setClientsCount={handleClientsCount} userName={userName} setMessagesCount={setCounter} setStreamEnded={handleRefreshStreamData}/>
+            <Chat streamEndSeconds={startStream.streamEndSeconds} isAdmin={isAdmin} userName={userName} setMessagesCount={setCounter} setStreamEnded={handleRefreshStreamData}/>
           </div>
         </div>
         {windowWidth >= 525 &&

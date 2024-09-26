@@ -93,7 +93,7 @@ export async function GET() {
         const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
           broadcastOnlineUsers(currentOnlineUsers);
           endStreamJob.cancel();
-          console.log('Задача завершения стрима была отменена');
+          console.log('Показываем реальный онлайн');
         });
       }
     }

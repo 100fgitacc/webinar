@@ -101,7 +101,7 @@ export async function GET() {
               console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
         
             // Логируем установку задачи на удаление через 5 секунд
-            const clearMessagesTime = new Date(Date.now() + 5000);
+            const clearMessagesTime = new Date(Date.now() +  1800000);
             console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
@@ -124,7 +124,6 @@ export async function GET() {
                 await deleteClient.query(updateStreamQuery, [streamId]);
                 console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
                 broadcastMessages([], null, true);
-                console.log('afasfasfasfasafas');
                 
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);

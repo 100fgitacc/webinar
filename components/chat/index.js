@@ -8,7 +8,7 @@ import { decodeJwt } from 'jose';
 import 'animate.css';
 const MySwal = withReactContent(Swal)
 
-const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndSeconds, setStreamEnded}) => {
+const Chat = ({ isAdmin, userName, setMessagesCount, streamEndSeconds, setStreamEnded}) => {
  
   const [currentName, setCurrentName] = useState('');
   const [comment, setComment] = useState('');
@@ -26,7 +26,6 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
         const data = JSON.parse(event.data);
   
         if (data.streamEnded) {
-          console.log('data.streamEnded', data.streamEnded);
           
           // Выполнить GET запрос для получения сообщений
           try {
@@ -72,22 +71,7 @@ const Chat = ({ isAdmin, setClientsCount, userName, setMessagesCount, streamEndS
     };
   }, []);
   
-  useEffect(() => {
-    const eventSource = new EventSource('/api/get_users_online');
-  
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        setClientsCount(data.onlineUsers);
-      } catch (error) {
-        console.error('Ошибка при обработке сообщений SSE:', error);
-      }
-    };
-    return () => {
-      eventSource.close();
-    };
-  }, []);
+ 
   
 
   useEffect(() => {
