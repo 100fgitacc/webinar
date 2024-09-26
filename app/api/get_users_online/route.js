@@ -58,7 +58,8 @@ export async function GET() {
     }
 
 
-    if (!isScheduled && startTime.getTime() > Date.now()) {
+    if (!isScheduled) {
+      console.log(`Планируем расписание онлайна`);
       isScheduled = true;
       const queryScenario = `
         SELECT scenario_online

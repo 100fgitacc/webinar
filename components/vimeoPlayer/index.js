@@ -7,6 +7,7 @@ import axios from 'axios';
 const VimeoPlayer = ({ startStream, delayTime }) => {
   const playerRef = useRef(null);
   const [test, settest] = useState(null);
+  const [test2, settest2] = useState(null);
   const containerRef = useRef(null);
   const [player, setPlayer] = useState(null);
   const [isPlayed, setIsPlayed] = useState(false);
@@ -18,52 +19,54 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
-  console.log(player);
-  
+
+
   useEffect(() => {
-    
-    if (playerRef.current || test && !player) {
-      const newPlayer = new Player(playerRef.current || test, {
-        id: startStream.video_id,
-        width: playerWidth ,
-        height:  playerWidth * (480 / 855), 
-        // controls: true,
-        controls: false,
-        keyboard: false,
-        quality,
-        
-      });
-      settest(playerRef.current);
-      setPlayer(newPlayer);
-
-      newPlayer.on('play', ({}) => {});
-      newPlayer.on('loaded', () => {
-        console.log('Плеер загружен');
-        if (streamStatus === 'inProcess') {
-          newPlayer.setCurrentTime(delayTime).catch((error) => {
-            console.error('Error setting current time:', error);
-          });
-        }
-      });
-     
-      newPlayer.on('timeupdate', ({ seconds }) => {
-        if (timings.includes(Math.round(seconds))) {
-          setShowPopup(true);
-          setTimeout(() => setShowPopup(false), 3000);
-        }
-      });
-
-      newPlayer.on('ended', () => {
-        setStreamStatus('ended');
-        setIsPlayed(false);
-      });
-
-      newPlayer.on('error', (error) => {
-        console.error('Vimeo player error:', error);
-      });
-    }
     setStreamStatus(startStream.streamStatus);
-  }, [player, startStream, quality, timings, streamStatus]);
+    if(test2){
+      if (playerRef.current || test && !player) {
+        const newPlayer = new Player(playerRef.current || test, {
+          id: startStream.video_id,
+          width: playerWidth ,
+          height:  playerWidth * (480 / 855), 
+          // controls: true,
+          controls: false,
+          keyboard: false,
+          quality,
+          
+        });
+        settest(playerRef.current);
+        setPlayer(newPlayer);
+  
+        newPlayer.on('play', ({}) => {});
+        newPlayer.on('loaded', () => {
+          console.log('Плеер загружен');
+          if (streamStatus === 'inProcess') {
+            newPlayer.setCurrentTime(delayTime).catch((error) => {
+              console.error('Error setting current time:', error);
+            });
+          }
+        });
+       
+        newPlayer.on('timeupdate', ({ seconds }) => {
+          if (timings.includes(Math.round(seconds))) {
+            setShowPopup(true);
+            setTimeout(() => setShowPopup(false), 3000);
+          }
+        });
+  
+        newPlayer.on('ended', () => {
+          setStreamStatus('ended');
+          setIsPlayed(false);
+        });
+  
+        newPlayer.on('error', (error) => {
+          console.error('Vimeo player error:', error);
+        });
+      }
+    }
+    
+  }, [player,quality,timings,streamStatus, test2]);
 
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
@@ -115,6 +118,11 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   useEffect(() => {
     delayTimeRef.current = delayTime;
+    if(delayTime && delayTime >= 0){
+
+      console.log('задержка нулевая, запускаем плеер');
+      settest2(true);
+    }
   }, [delayTime]);
   
   console.log(delayTime);
@@ -188,7 +196,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       };
     }
   }, [player, isPlayed]);
-
+ 
   const renderStreamStatus = () => {
     switch (streamStatus) {
       case 'notStarted':

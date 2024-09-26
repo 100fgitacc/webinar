@@ -35,12 +35,28 @@ const HomePage = () => {
       return {};
     }
   };
+  const getUsersOnline = async () => {
+    const eventSource = new EventSource('/api/get_users_online');
+  
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        setUserOnline(data.onlineUsers);
+      } catch (error) {
+        console.error('Ошибка при обработке сообщений SSE:', error);
+      }
+    };
+    return () => {
+      eventSource.close();
+    };
+  }
   const [delayTime, setDelayTime] = useState(null);
 
   const initializeStream = async () => {
     try {
       const streamsData = await getStreamData();
-  
+      await getUsersOnline();
       if (!streamsData || !streamsData.start_date) {
         console.error('No streams data available');
         return;
@@ -71,7 +87,7 @@ const HomePage = () => {
       const clientTimeAtStart = Date.now();
       const serverTimeAtStart = new Date(serverTime).getTime();
       const timeDifference = clientTimeAtStart - serverTimeAtStart;
-  
+      console.log('Разница времени (client - server):', timeDifference);
       setStartStream(prevState => {
         const updatedState = {
           ...prevState,
@@ -94,7 +110,7 @@ const HomePage = () => {
         const interval = setInterval(() => {
           const now = Date.now() - timeDifference;  
           const timeDifferenceFromStart = startTime - now;
-  
+          console.log('Разница времени от начала:', timeDifferenceFromStart);
           if (timeDifferenceFromStart <= 0) {
             clearInterval(interval);
             setStartStream(prevState => ({
@@ -106,6 +122,7 @@ const HomePage = () => {
             const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
             const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
+            console.log(`Оставшееся время: ${hours}:${minutes}:${seconds}`);
             setStartStream(prevState => ({
               ...prevState,
               countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
@@ -127,10 +144,15 @@ const HomePage = () => {
       const streamStartTime = new Date(startStream.startTime).getTime();
       const clientCurrentTime = Date.now() - startStream.timeDifference;
       const initialDelay = Math.round((clientCurrentTime - streamStartTime) / 1000);
+      console.log('Первоначальная задержка:', initialDelay);
       setDelayTime(initialDelay);
     
       const interval = setInterval(() => {
-        setDelayTime((prevDelayTime) => prevDelayTime + 1); 
+        setDelayTime((prevDelayTime) => {
+          const newDelayTime = prevDelayTime + 1; 
+          console.log('Обновленная задержка:', newDelayTime); 
+          return newDelayTime;
+        });
       }, 1000);
       
       return () => clearInterval(interval);
@@ -217,28 +239,12 @@ const HomePage = () => {
     
   }
 
-  const getUsersOnline = () => {
-    const eventSource = new EventSource('/api/get_users_online');
   
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        
-        setUserOnline(data.onlineUsers);
-      } catch (error) {
-        console.error('Ошибка при обработке сообщений SSE:', error);
-      }
-    };
-    return () => {
-      eventSource.close();
-    };
-  }
   
   useEffect(() => {
     if (refreshStreamData === true) {
       console.log('Стрим завершен, запрашиваеm новые данные');
       initializeStream(); 
-      getUsersOnline();
     }
     setRefreshStreamData(false);
   }, [refreshStreamData]);
