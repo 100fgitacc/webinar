@@ -41,162 +41,162 @@ export async function GET() {
       });
     }
 
-    // if (!isScheduled) {
-    //   console.log(`Планируем задачи для стрима, начавшегося в ${startTime}`);
-    //   isScheduled = true;
+    if (!isScheduled) {
+      console.log(`Планируем задачи для стрима, начавшегося в ${startTime}`);
+      isScheduled = true;
       
-    //   const queryScenario = `
-    //     SELECT scenario_text
-    //     FROM scenario
-    //     WHERE id = $1
-    //   `;
-    //   const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-    //   const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
+      const queryScenario = `
+        SELECT scenario_text
+        FROM scenario
+        WHERE id = $1
+      `;
+      const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+      const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
 
-    //   commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
-    //     const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
+      commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
+        const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
         
-    //     if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
+        if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
           
-    //       schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
+          schedule.scheduleJob(`${text}-${scheduleTime}`, new Date(scheduleTime), async () => {
 
-    //         const taskClient = await pool.connect(); 
-    //         try {
-    //           const message = {
-    //             id: Date.now(),
-    //             sender,
-    //             text,
-    //             sending_time: new Date().toISOString(),
-    //             pinned: pinned || false,
-    //             isadmin: isAdmin
-    //           };
+            const taskClient = await pool.connect(); 
+            try {
+              const message = {
+                id: Date.now(),
+                sender,
+                text,
+                sending_time: new Date().toISOString(),
+                pinned: pinned || false,
+                isadmin: isAdmin
+              };
               
-    //           await saveMessageToDb(message, taskClient);
-    //           broadcastMessages([message]);
-    //         } catch (error) {
-    //           console.error('Ошибка во время выполнения запланированного задания:', error);
-    //         } finally {
-    //           taskClient.release(); 
-    //         }
-    //       });
-    //     } 
-    //     // else {
-    //     //   console.log(`Задача для сообщения "${text}" уже запланирована, пропускаем.`);
-    //     // }
-    //   });
+              await saveMessageToDb(message, taskClient);
+              broadcastMessages([message]);
+            } catch (error) {
+              console.error('Ошибка во время выполнения запланированного задания:', error);
+            } finally {
+              taskClient.release(); 
+            }
+          });
+        } 
+        // else {
+        //   console.log(`Задача для сообщения "${text}" уже запланирована, пропускаем.`);
+        // }
+      });
 
-    //   const videoEndTime = new Date(startTime).getTime() + videoDuration;
-    //   const streamId = streamRows[0]?.id;
+      const videoEndTime = new Date(startTime).getTime() + videoDuration;
+      const streamId = streamRows[0]?.id;
 
-    //   if (!schedule.scheduledJobs['saveAndClearMessages']) {
-    //     console.log(`Планируем задачу очистки сообщений на время ${new Date(videoEndTime)}`);
+      if (!schedule.scheduledJobs['saveAndClearMessages']) {
+        console.log(`Планируем задачу очистки сообщений на время ${new Date(videoEndTime)}`);
         
-    //     schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
-    //       console.log(`Выполняем задачу по сохранению и очистке сообщений`);
+        schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
+          console.log(`Выполняем задачу по сохранению и очистке сообщений`);
           
-    //       const taskClient = await pool.connect(); 
-    //       try {
-    //         const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
-    //         const { rows: messages } = await taskClient.query(messagesQuery);
+          const taskClient = await pool.connect(); 
+          try {
+            const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
+            const { rows: messages } = await taskClient.query(messagesQuery);
         
-    //         const saveQuery = `
-    //           INSERT INTO archived_messages (messages)
-    //           VALUES ($1)
-    //         `;
-    //          const result = await taskClient.query(saveQuery, [JSON.stringify(messages)]);
-    //           console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
+            const saveQuery = `
+              INSERT INTO archived_messages (messages)
+              VALUES ($1)
+            `;
+             const result = await taskClient.query(saveQuery, [JSON.stringify(messages)]);
+              console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
         
-    //         // Логируем установку задачи на удаление через 5 секунд
-    //         const clearMessagesTime = new Date(Date.now() +  5000);
-    //         console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
+            // Логируем установку задачи на удаление через 5 секунд
+            const clearMessagesTime = new Date(Date.now() +  5000);
+            console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             
-    //         schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
-    //           console.log('Начинаю задачу по удалению сообщений');
+            schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
+              console.log('Начинаю задачу по удалению сообщений');
               
-    //           const deleteClient = await pool.connect(); 
-    //           try {
-    //             console.log('Удаляем сообщения из таблицы messages...');
+              const deleteClient = await pool.connect(); 
+              try {
+                console.log('Удаляем сообщения из таблицы messages...');
                 
-    //             const deleteQuery = 'DELETE FROM messages';
-    //             const result = await deleteClient.query(deleteQuery);
+                const deleteQuery = 'DELETE FROM messages';
+                const result = await deleteClient.query(deleteQuery);
                 
-    //             console.log(`Удалено строк: ${result.rowCount}`);
-    //             console.log('Все сообщения успешно удалены из таблицы messages.');
-    //             const updateStreamQuery = `
-    //                 UPDATE streams
-    //                 SET ended = true
-    //                 WHERE id = $1
-    //             `;
-    //             await deleteClient.query(updateStreamQuery, [streamId]);
-    //             console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
-    //             broadcastMessages([], null, true);
+                console.log(`Удалено строк: ${result.rowCount}`);
+                console.log('Все сообщения успешно удалены из таблицы messages.');
+                const updateStreamQuery = `
+                    UPDATE streams
+                    SET ended = true
+                    WHERE id = $1
+                `;
+                await deleteClient.query(updateStreamQuery, [streamId]);
+                console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
+                broadcastMessages([], null, true);
                 
-    //           } catch (error) {
-    //             console.error('Ошибка при очистке таблицы сообщений:', error);
-    //           } finally {
-    //             deleteClient.release();
-    //           }
-    //         });
+              } catch (error) {
+                console.error('Ошибка при очистке таблицы сообщений:', error);
+              } finally {
+                deleteClient.release();
+              }
+            });
         
-    //       } catch (error) {
-    //         console.error('Ошибка при сохранении сообщений в архив:', error);
-    //       } finally {
-    //         taskClient.release(); 
-    //       }
-    //     });
-    //   } else {
-    //     console.log('Задача "saveAndClearMessages" уже существует, пропускаем.');
-    //   }
-    //   if (!schedule.scheduledJobs['unpinMessage']) {
-    //     try {
-    //       const queryScenario = `
-    //         SELECT scenario_unpin
-    //         FROM scenario
-    //         WHERE id = $1
-    //       `;
+          } catch (error) {
+            console.error('Ошибка при сохранении сообщений в архив:', error);
+          } finally {
+            taskClient.release(); 
+          }
+        });
+      } else {
+        console.log('Задача "saveAndClearMessages" уже существует, пропускаем.');
+      }
+      if (!schedule.scheduledJobs['unpinMessage']) {
+        try {
+          const queryScenario = `
+            SELECT scenario_unpin
+            FROM scenario
+            WHERE id = $1
+          `;
           
-    //       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
+          const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
                 
-    //       const unpinSchedule = scenarioRows[0]?.scenario_unpin || '[]';
-    //         if (Array.isArray(unpinSchedule) && unpinSchedule.length > 0 && Array.isArray(unpinSchedule[0]?.time)) {
-    //         unpinSchedule[0]?.time.forEach((seconds, index) => {
-    //           const unpinTime = new Date(startTime.getTime() + seconds * 1000);
+          const unpinSchedule = scenarioRows[0]?.scenario_unpin || '[]';
+            if (Array.isArray(unpinSchedule) && unpinSchedule.length > 0 && Array.isArray(unpinSchedule[0]?.time)) {
+            unpinSchedule[0]?.time.forEach((seconds, index) => {
+              const unpinTime = new Date(startTime.getTime() + seconds * 1000);
         
-    //           if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
-    //             schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
-    //               const taskClient = await pool.connect();
-    //               try {
+              if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
+                schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
+                  const taskClient = await pool.connect();
+                  try {
                     
-    //                 const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
-    //                 const { rows: messageRows } = await taskClient.query(query);
-    //                 if (messageRows.length > 0) {
-    //                   const messageId = messageRows[0].id;
+                    const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
+                    const { rows: messageRows } = await taskClient.query(query);
+                    if (messageRows.length > 0) {
+                      const messageId = messageRows[0].id;
         
-    //                   await updatePinnedStatus(messageId, false); 
-    //                 }else {
-    //                   console.log('Нет закрепленных сообщений для открепления');
-    //                 }
+                      await updatePinnedStatus(messageId, false); 
+                    }else {
+                      console.log('Нет закрепленных сообщений для открепления');
+                    }
         
-    //               } catch (error) {
-    //                 console.error('Ошибка при откреплении сообщения:', error);
-    //               } finally {
-    //                 taskClient.release();
-    //               }
-    //             });
-    //           } 
-    //           // else {
-    //           //   console.log(`Задача на время ${unpinTime} уже существует, пропускаем`);
-    //           // }
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.error('Ошибка при планировании задач открепления сообщений:', error);
-    //     }
-    //   }
-    //   // else {
-    //   //   console.log('Задача уже существует, пропускаем.');
-    //   // }
-    // }
+                  } catch (error) {
+                    console.error('Ошибка при откреплении сообщения:', error);
+                  } finally {
+                    taskClient.release();
+                  }
+                });
+              } 
+              // else {
+              //   console.log(`Задача на время ${unpinTime} уже существует, пропускаем`);
+              // }
+            });
+          }
+        } catch (error) {
+          console.error('Ошибка при планировании задач открепления сообщений:', error);
+        }
+      }
+      // else {
+      //   console.log('Задача уже существует, пропускаем.');
+      // }
+    }
     const scheduledJobs = schedule.scheduledJobs;
     Object.keys(scheduledJobs).forEach(jobName => {
       const job = scheduledJobs[jobName];
