@@ -52,7 +52,7 @@ export async function GET() {
     const videoDuration = streamRows[0]?.video_duration * 1000;
     const scenarioId = streamRows[0]?.scenario_id;
 
-    if (previousStartTime?.getTime() !== startTime.getTime() && startTime.getTime() > Date.now()) {
+    if (previousStartTime?.getTime() !== startTime.getTime()) {
       isScheduled = false;
       previousStartTime = startTime;
     }
