@@ -28,7 +28,7 @@ export async function GET() {
     }
 
    
-    if (previousStartTime?.getTime() !== startTime.getTime() && startTime.getTime() > Date.now()) {
+    if (previousStartTime?.getTime() !== startTime.getTime()) {
       console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
