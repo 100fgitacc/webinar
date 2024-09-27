@@ -13,7 +13,6 @@ export async function GET() {
       SELECT id, start_date, scenario_id, video_duration
       FROM streams
       WHERE ended = false
-      AND start_date >= NOW() 
       ORDER BY start_date ASC
       LIMIT 1
     `;
