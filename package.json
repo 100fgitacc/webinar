@@ -31,6 +31,7 @@
     "react-phone-input-2": "^2.15.1",
     "react-phone-number-input": "^3.4.5",
     "react-sweetalert2": "^0.6.0",
+    "react-timer-hook": "^3.0.7",
     "sweetalert2": "^11.12.4",
     "sweetalert2-react-content": "^5.0.7",
     "uuid": "^10.0.0",

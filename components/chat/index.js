@@ -24,21 +24,23 @@ const Chat = ({ isAdmin, userName, setMessagesCount, streamEndSeconds, setStream
     eventSource.onmessage = async (event) => {
       try {
         const data = JSON.parse(event.data);
-  
+        console.log(data.streamEnded);
+        
         if (data.streamEnded) {
           
           // Выполнить GET запрос для получения сообщений
           try {
             const response = await fetch('/api/messages');
             const result = await response.json();
-  
-            // Очистить старые сообщения и обновить новыми
+            console.log(result.data);
+            
+            setVisibleMessages([]);
+            setStreamEnded(true);
            
           } catch (error) {
             console.error('Ошибка при получении сообщений:', error);
           }
-          setVisibleMessages([]);
-          setStreamEnded(true);
+          
           return;
         }
   

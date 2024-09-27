@@ -52,6 +52,7 @@ const HomePage = () => {
     };
   }
   const [delayTime, setDelayTime] = useState(null);
+  const [streamSeconds, setStreamSeconds] = useState(null);
 
   const initializeStream = async () => {
     try {
@@ -109,20 +110,41 @@ const HomePage = () => {
       if (streamStatus === 'notStarted') {
         const interval = setInterval(() => {
           const now = Date.now() - timeDifference;  
-          const timeDifferenceFromStart = startTime - now;
+          let timeDifferenceFromStart = startTime - now; // Разница до начала стрима
+      
           console.log('Разница времени от начала:', timeDifferenceFromStart);
+          
           if (timeDifferenceFromStart <= 0) {
-            clearInterval(interval);
-            setStartStream(prevState => ({
-              ...prevState,
-              countdown: '00:00:00',
-              streamStatus: 'inProcess'
-            }));
-          } else {
+            // Время уже началось, меняем timeDifferenceFromStart на время, прошедшее с начала
+            console.log('Время уже началось');
+            
+            timeDifferenceFromStart = now - startTime; // Прошедшее время с начала стрима
+            
+            // Вычисляем прошедшие часы, минуты и секунды
             const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
             const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
+            
+            console.log(`Прошло времени: ${hours}:${minutes}:${seconds}`);
+            
+            setStartStream(prevState => ({
+              ...prevState,
+              countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
+              streamStatus: 'inProcess'
+            }));
+            
+          } else {
+            // Обычный обратный отсчёт до начала стрима
+            console.log('Обычный обратный отсчёт до начала стрима 6');
+            const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
+            
             console.log(`Оставшееся время: ${hours}:${minutes}:${seconds}`);
+            
+            // Отправляем оставшееся время в секундах
+            setStreamSeconds(Math.floor(timeDifferenceFromStart / 1000)); 
+            
             setStartStream(prevState => ({
               ...prevState,
               countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
@@ -136,23 +158,28 @@ const HomePage = () => {
     }
   };
  
+  console.log('streamSeconds', streamSeconds);
+  
 
   const [refreshStreamData, setRefreshStreamData] = useState(false);
   useEffect(() => {
     if (startStream.startTime && startStream.timeDifference) {
+      
       const streamStartTime = new Date(startStream.startTime).getTime();
       const clientCurrentTime = Date.now() - startStream.timeDifference;
       const initialDelay = Math.round((clientCurrentTime - streamStartTime) / 1000);
+      console.log('Первоначальная задержка:', initialDelay);
       setDelayTime(initialDelay);
+    
+      const interval = setInterval(() => {
+        setDelayTime((prevDelayTime) => {
+          const newDelayTime = prevDelayTime + 1; 
+          console.log('Обновленная задержка:', newDelayTime); 
+          return newDelayTime;
+        });
+      }, 1000);
       
-      const updateDelayTime = () => {
-        setDelayTime((prevDelayTime) => prevDelayTime + 1);
-        setTimeout(updateDelayTime, 1000);
-      };
-  
-      updateDelayTime();
-  
-      return () => clearTimeout(updateDelayTime);
+      return () => clearInterval(interval);
     }
   }, [startStream.startTime, startStream.timeDifference, refreshStreamData]);
     
