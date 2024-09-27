@@ -105,8 +105,8 @@ export async function GET() {
              const result = await taskClient.query(saveQuery, [JSON.stringify(messages)]);
               console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
         
-            // Логируем установку задачи на удаление через 5 секунд
-            const clearMessagesTime = new Date(Date.now() +  5000);
+            // Логируем установку задачи на удаление через 
+            const clearMessagesTime = new Date(Date.now() +  1800000);
             console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
