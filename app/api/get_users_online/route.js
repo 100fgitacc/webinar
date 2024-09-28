@@ -99,7 +99,7 @@ export async function GET() {
         const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
           broadcastOnlineUsers(currentOnlineUsers);
           endStreamJob.cancel();
-          console.log('Показываем реальный онлайн');
+          console.log('Показываем реальный онлайн', currentOnlineUsers);
         });
       }
     }

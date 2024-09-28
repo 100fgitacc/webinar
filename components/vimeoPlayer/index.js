@@ -7,7 +7,7 @@ import axios from 'axios';
 const VimeoPlayer = ({ startStream, delayTime }) => {
   const playerRef = useRef(null);
   const [test, settest] = useState(null);
-  const [test2, settest2] = useState(null);
+  const [test2, settest2] = useState(false);
   const containerRef = useRef(null);
   const [player, setPlayer] = useState(null);
   const [isPlayed, setIsPlayed] = useState(false);
@@ -118,10 +118,13 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
   useEffect(() => {
     delayTimeRef.current = delayTime;
-    if(delayTime && delayTime >= 0){
+    if(delayTime <= startStream.streamEndSeconds && delayTime >= 0){
 
-      console.log('задержка нулевая, запускаем плеер');
+      console.log('задержка в пределах видео, запускаем плеер');
       settest2(true);
+    }else{
+      console.log('задержка вне видео, отключаем плеер');
+      settest2(false);
     }
   }, [delayTime]);
   
