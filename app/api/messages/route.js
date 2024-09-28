@@ -32,12 +32,6 @@ export async function GET() {
       console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
-      const scheduledJobs = schedule.scheduledJobs;
-      Object.keys(scheduledJobs).forEach(jobName => {
-        const job = scheduledJobs[jobName];
-        job.cancel(); 
-        delete scheduledJobs[jobName]; 
-      });
     }
 
     if (!isScheduled) {
@@ -129,7 +123,12 @@ export async function GET() {
                 await deleteClient.query(updateStreamQuery, [streamId]);
                 console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
                 broadcastMessages([], null, true);
-                
+                const scheduledJobs = schedule.scheduledJobs;
+                Object.keys(scheduledJobs).forEach(jobName => {
+                  const job = scheduledJobs[jobName];
+                  job.cancel(); 
+                  delete scheduledJobs[jobName]; 
+                });
               } catch (error) {
                 console.error('Ошибка при очистке таблицы сообщений:', error);
               } finally {

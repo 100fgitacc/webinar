@@ -56,7 +56,7 @@ export async function GET() {
       isScheduled = false;
       previousStartTime = startTime;
     }
-
+    console.log('isScheduled ', isScheduled)
 
     if (!isScheduled) {
       console.log(`Планируем расписание онлайна`);

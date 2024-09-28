@@ -87,7 +87,6 @@ const HomePage = () => {
       const clientTimeAtStart = Date.now();
       const serverTimeAtStart = new Date(serverTime).getTime();
       const timeDifference = clientTimeAtStart - serverTimeAtStart;
-      console.log('Разница времени (client - server):', timeDifference);
       setStartStream(prevState => {
         const updatedState = {
           ...prevState,
@@ -98,6 +97,7 @@ const HomePage = () => {
           button_show_at,
           serverTime,
           timeDifference,  
+          streamEndSeconds
         };
   
         if (streamStatus !== 'ended') {
@@ -106,30 +106,6 @@ const HomePage = () => {
         return updatedState;
       });
   
-      // if (streamStatus === 'notStarted') {
-      //   const interval = setInterval(() => {
-      //     const now = Date.now() - timeDifference;  
-      //     const timeDifferenceFromStart = startTime - now;
-      //     console.log('Разница времени от начала:', timeDifferenceFromStart);
-      //     if (timeDifferenceFromStart <= 0) {
-      //       clearInterval(interval);
-      //       setStartStream(prevState => ({
-      //         ...prevState,
-      //         countdown: '00:00:00',
-      //         streamStatus: 'inProcess'
-      //       }));
-      //     } else {
-      //       const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
-      //       const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
-      //       const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
-      //       console.log(`Оставшееся время: ${hours}:${minutes}:${seconds}`);
-      //       setStartStream(prevState => ({
-      //         ...prevState,
-      //         countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-      //       }));
-      //     }
-      //   }, 1000);
-      // }
   
     } catch (error) {
       console.error('Error initializing stream:', error);
@@ -171,9 +147,6 @@ const HomePage = () => {
       return () => clearInterval(interval);
     }
   }, [startStream.startTime, startStream.timeDifference, refreshStreamData]);
-    
-  console.log(startStream.countdown);
-  console.log(delayTime);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -246,13 +219,17 @@ const HomePage = () => {
     if (delayTime >= startStream.button_show_at) {
       setShowButton(true);
     }
+    if (delayTime >= startStream.streamEndSeconds) {
+      setStartStream(prevState => ({
+        ...prevState,
+        streamStatus: 'ended'
+      }));
+    }
   }, [delayTime]);
 
 
   const handleRefreshStreamData = (e) =>{
     setRefreshStreamData(e);
-    console.log(e);
-    
   }
 
   
