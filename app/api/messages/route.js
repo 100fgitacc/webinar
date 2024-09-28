@@ -107,6 +107,7 @@ export async function GET() {
         
             // Логируем установку задачи на удаление через 
             const clearMessagesTime = new Date(Date.now() +  1800000);
+            // const clearMessagesTime = new Date(Date.now() +  5000);
             console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {

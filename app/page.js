@@ -70,8 +70,9 @@ const HomePage = () => {
       const duration = video_duration || 0;
       const streamEndTime = new Date(startTime);
       streamEndTime.setSeconds(streamEndTime.getSeconds() + duration);
-      const streamEndSeconds = streamEndTime.getTime();
+   
       
+      const streamEndSeconds = streamEndTime.getTime();
       let streamStatus = '';
       if (now < startTime) {
         streamStatus = 'notStarted';
@@ -80,10 +81,10 @@ const HomePage = () => {
         streamStatus = 'ended';
       }else {
         streamStatus = 'inProcess';
+        console.log('222222222222');
       }
      
-      console.log('Задаём статус:', streamStatus);
-      
+     
       const clientTimeAtStart = Date.now();
       const serverTimeAtStart = new Date(serverTime).getTime();
       const timeDifference = clientTimeAtStart - serverTimeAtStart;
@@ -97,9 +98,10 @@ const HomePage = () => {
           button_show_at,
           serverTime,
           timeDifference,  
+          video_duration,
           streamEndSeconds
         };
-  
+        
         if (streamStatus !== 'ended') {
           updatedState.streamEndSeconds = streamEndSeconds;
         }
@@ -112,6 +114,7 @@ const HomePage = () => {
     }
   };
  
+  
 
   const [refreshStreamData, setRefreshStreamData] = useState(false);
   useEffect(() => {
@@ -121,13 +124,16 @@ const HomePage = () => {
   
         // Обновление countdown
         const timeDifferenceFromStart = new Date(startStream.startTime) - now;
-        if (timeDifferenceFromStart <= 0) {
+        if (timeDifferenceFromStart <= 0 && startStream.streamStatus === 'notStarted') {
+          console.log('11111111111');
+          
           setStartStream(prevState => ({
             ...prevState,
             countdown: '00:00:00',
             streamStatus: 'inProcess'
           }));
-        } else {
+        }
+        else {
           const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
           const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
@@ -219,20 +225,19 @@ const HomePage = () => {
     if (delayTime >= startStream.button_show_at) {
       setShowButton(true);
     }
-    if (delayTime >= startStream.streamEndSeconds) {
+    if (delayTime >= startStream.video_duration) {
       setStartStream(prevState => ({
         ...prevState,
         streamStatus: 'ended'
       }));
     }
   }, [delayTime]);
-
-
   const handleRefreshStreamData = (e) =>{
     setRefreshStreamData(e);
+    console.log(e);
+    
   }
 
-  
   
   useEffect(() => {
     if (refreshStreamData === true) {
@@ -250,7 +255,7 @@ const HomePage = () => {
           </h1>
         <div className={styles.container}>
           <div className={styles['player-container']}>
-            <VimeoPlayer startStream={startStream}  delayTime={delayTime}/>
+            <VimeoPlayer startStream={startStream}  delayTime={delayTime} refreshStreamData={refreshStreamData}/>
             {showButton && (
               <Link className={`${styles["banner-wrapper"]} ${showButton ? styles.show : ''}`} href='https://4.100f.com/web-offer/?utm_source=efir' target="_blank">
                 <p className={styles.banner} >Забронировать место</p>

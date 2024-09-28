@@ -5,6 +5,7 @@ import styles from './index.module.css';
 import axios from 'axios';
 
 const VimeoPlayer = ({ startStream, delayTime }) => {
+  
   const playerRef = useRef(null);
   const [test, settest] = useState(null);
   const [test2, settest2] = useState(false);
@@ -13,16 +14,16 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [isPlayed, setIsPlayed] = useState(false);
   const [quality, setQuality] = useState('720p');
   const [showPopup, setShowPopup] = useState(false);
-  const [streamStatus, setStreamStatus] = useState(null);
   const [playerWidth, setPlayerWidth] = useState(null);
 
   const [timings, setTimings] = useState([]);
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
+  console.log(startStream.streamStatus);
+  
 
   useEffect(() => {
-    setStreamStatus(startStream.streamStatus);
     if(test2){
       if (playerRef.current || test && !player) {
         const newPlayer = new Player(playerRef.current || test, {
@@ -40,8 +41,8 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   
         newPlayer.on('play', ({}) => {});
         newPlayer.on('loaded', () => {
-          console.log('Плеер загружен');
-          if (streamStatus === 'inProcess') {
+          // console.log('Плеер загружен');
+          if (startStream.streamStatus === 'inProcess') {
             newPlayer.setCurrentTime(delayTime).catch((error) => {
               console.error('Error setting current time:', error);
             });
@@ -56,7 +57,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
         });
   
         newPlayer.on('ended', () => {
-          setStreamStatus('ended');
           setIsPlayed(false);
         });
   
@@ -66,7 +66,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       }
     }
     
-  }, [player,quality,timings,streamStatus, test2]);
+  }, [player,quality,timings, test2]);
 
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {
@@ -91,7 +91,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   useEffect(() => {
     if (player) {
       const handleSeeked = (event) => {
-        console.log(`Видео перемотано на время: ${event.seconds} секунд`);
+        // console.log(`Видео перемотано на время: ${event.seconds} секунд`);
 
         player.getCurrentTime().then((currentTime) => {
           const delayTime = delayTimeRef.current;
@@ -100,7 +100,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
 
           if (timeDifference > 1) {
             player.setCurrentTime(delayTime).then(() => {
-              console.log(`Видео принудительно перемотано на время: ${delayTime} секунд`);
+              // console.log(`Видео принудительно перемотано на время: ${delayTime} секунд`);
             }).catch((error) => {
               console.error('Ошибка при установке времени:', error);
             });
@@ -117,14 +117,13 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   }, [player]);
 
   useEffect(() => {
+    
     delayTimeRef.current = delayTime;
-    if(delayTime <= startStream.streamEndSeconds && delayTime >= 0){
-
-      console.log('задержка в пределах видео, запускаем плеер');
+    if(delayTime  <= startStream.video_duration && delayTime >= 0){
       settest2(true);
     }else{
-      console.log('задержка вне видео, отключаем плеер');
       settest2(false);
+      setIsPlayed(false);
     }
   }, [delayTime]);
   
@@ -138,7 +137,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   
         return player.setCurrentTime(delayTime);
       }).then(() => {
-        console.log(`Время установлено на: ${delayTime}`);
+        // console.log(`Время установлено на: ${delayTime}`);
       }).catch((error) => {
         console.error('Ошибка при воспроизведении или установке времени:', error);
       });
@@ -201,7 +200,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   }, [player, isPlayed]);
  
   const renderStreamStatus = () => {
-    switch (streamStatus) {
+    switch (startStream.streamStatus) {
       case 'notStarted':
         return (
           <div className={styles['stream-not-started']}>
