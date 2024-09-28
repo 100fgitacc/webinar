@@ -32,6 +32,12 @@ export async function GET() {
       console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
+      const scheduledJobs = schedule.scheduledJobs;
+      Object.keys(scheduledJobs).forEach(jobName => {
+      const job = scheduledJobs[jobName];
+      job.cancel(); 
+      delete scheduledJobs[jobName]; 
+      });
     }
 
     if (!isScheduled) {

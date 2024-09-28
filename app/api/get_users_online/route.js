@@ -14,7 +14,8 @@ let firstShowAt;
 async function broadcastOnlineUsers(count) {
   const serverTime = new Date();
   const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
-
+ 
+  
   let userPayload;
   
 
@@ -43,7 +44,8 @@ export async function GET() {
     const queryStream = `
       SELECT start_date, scenario_id, video_duration
       FROM streams
-      ORDER BY start_date DESC
+      WHERE ended = false
+      ORDER BY start_date ASC
       LIMIT 1
     `;
     const { rows: streamRows } = await client.query(queryStream);
@@ -70,6 +72,8 @@ export async function GET() {
       const scenarioOnline = scenarioRows[0]?.scenario_online || [];
       firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
+      console.log(switchTime );
+
 
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
@@ -81,7 +85,8 @@ export async function GET() {
       scenarioOnline.forEach(({ showAt, count }) => {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
 
-        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) { 
+       if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
+          console.log(`Запланирована задача на ${scheduleTime}`);
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
