@@ -20,7 +20,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
   const [message, setMessage] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
 
-  console.log(startStream.streamStatus);
   
 
   useEffect(() => {

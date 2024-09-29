@@ -58,8 +58,6 @@ export async function GET() {
       isScheduled = false;
       previousStartTime = startTime;
     }
-    console.log('isScheduled ', isScheduled)
-
     if (!isScheduled) {
       console.log(`Планируем расписание онлайна`);
       isScheduled = true;
@@ -72,7 +70,6 @@ export async function GET() {
       const scenarioOnline = scenarioRows[0]?.scenario_online || [];
       firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
-      console.log(switchTime );
 
 
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
@@ -86,7 +83,6 @@ export async function GET() {
         const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
 
        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
-          console.log(`Запланирована задача на ${scheduleTime}`);
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
