@@ -37,6 +37,7 @@ async function broadcastOnlineUsers(count) {
   });
 }
 
+
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
   const client = await pool.connect();
@@ -67,10 +68,9 @@ export async function GET() {
         WHERE id = $1
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-      const scenarioOnline = scenarioRows[0]?.scenario_online || [];
-      firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
+      const scenarioOnline = scenarioRows[0]?.scenario_online || '[]';
+      firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].time : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
-
 
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
@@ -79,8 +79,8 @@ export async function GET() {
         });
       }
 
-      scenarioOnline.forEach(({ showAt, count }) => {
-        const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
+      scenarioOnline.forEach(({ time, count }) => {
+        const scheduleTime = new Date(startTime.getTime() + time * 1000);
 
        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {

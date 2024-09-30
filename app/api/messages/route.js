@@ -32,12 +32,6 @@ export async function GET() {
       console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
-        Object.keys(scheduledJobs).forEach(jobName => {
-            const job = scheduledJobs[jobName];
-            job.cancel(); 
-            console.log(`Задача "${jobName}" была отменена`); // Логируем отмену задачи
-            delete scheduledJobs[jobName]; 
-        });
     }
 
     if (!isScheduled) {
@@ -50,10 +44,11 @@ export async function GET() {
         WHERE id = $1
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-      const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
+      const commentsSchedule = JSON.parse(scenarioRows[0]?.scenario_text || '[]');
 
+      
       commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
-        const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
+      const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
         
         if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
           
@@ -162,38 +157,34 @@ export async function GET() {
           
           const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
                 
-          const unpinSchedule = scenarioRows[0]?.scenario_unpin || '[]';
-            if (Array.isArray(unpinSchedule) && unpinSchedule.length > 0 && Array.isArray(unpinSchedule[0]?.time)) {
-            unpinSchedule[0]?.time.forEach((seconds, index) => {
-              const unpinTime = new Date(startTime.getTime() + seconds * 1000);
-        
-              if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
-                schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
-                  const taskClient = await pool.connect();
-                  try {
-                    
-                    const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
-                    const { rows: messageRows } = await taskClient.query(query);
-                    if (messageRows.length > 0) {
-                      const messageId = messageRows[0].id;
-        
-                      await updatePinnedStatus(messageId, false); 
-                    }else {
-                      console.log('Нет закрепленных сообщений для открепления');
+          const unpinSchedule = JSON.parse(scenarioRows[0]?.scenario_unpin || '[]');
+
+            if (Array.isArray(unpinSchedule) && unpinSchedule.length > 0) {
+              unpinSchedule.forEach(({ time }, index) => {
+                const unpinTime = new Date(startTime.getTime() + time * 1000);
+
+                if (!schedule.scheduledJobs[`unpinMessage-${index}`]) {
+                  schedule.scheduleJob(`unpinMessage-${index}`, unpinTime, async () => {
+                    const taskClient = await pool.connect();
+                    try {
+                      const query = 'SELECT * FROM messages WHERE pinned = true ORDER BY sending_time DESC LIMIT 1';
+                      const { rows: messageRows } = await taskClient.query(query);
+                      if (messageRows.length > 0) {
+                        const messageId = messageRows[0].id;
+
+                        await updatePinnedStatus(messageId, false);
+                      } else {
+                        console.log('Нет закрепленных сообщений для открепления');
+                      }
+                    } catch (error) {
+                      console.error('Ошибка при откреплении сообщения:', error);
+                    } finally {
+                      taskClient.release();
                     }
-        
-                  } catch (error) {
-                    console.error('Ошибка при откреплении сообщения:', error);
-                  } finally {
-                    taskClient.release();
-                  }
-                });
-              } 
-              // else {
-              //   console.log(`Задача на время ${unpinTime} уже существует, пропускаем`);
-              // }
-            });
-          }
+                  });
+                } 
+              });
+            }
         } catch (error) {
           console.error('Ошибка при планировании задач открепления сообщений:', error);
         }
@@ -352,6 +343,8 @@ async function loadMessagesFromDb() {
   const client = await pool.connect();
   try {
     const query = 'SELECT * FROM messages ORDER BY sending_time ASC';
+
+    
     const { rows } = await client.query(query);
     return rows;
   } catch (error) {

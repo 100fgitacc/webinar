@@ -5,7 +5,7 @@ export async function GET() {
   const client = await pool.connect();
   try {
     const query = `
-      SELECT id, name, start_date, scenario_id, video_id, video_duration, users_count, button_show_at
+      SELECT id, name, start_date, scenario_id, video_id, video_duration, button_show_at
       FROM streams
       WHERE ended = false
       ORDER BY start_date ASC

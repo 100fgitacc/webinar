@@ -65,7 +65,7 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
       }
     }
     
-  }, [player,quality,timings, test2]);
+  }, [player,quality,timings, test2, startStream.streamStatus]);
 
   useEffect(() => {
     if (startStream && startStream.scenario_id && !dataFetched) {

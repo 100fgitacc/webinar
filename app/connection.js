@@ -1,17 +1,12 @@
 
 import { Pool } from 'pg';
-const connectionString = "postgres://default:6MtWFzg3OGEr@ep-floral-cloud-a46xmgzv.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require";
+const connectionString = "postgres://default:RAQX5hP6aTuk@ep-withered-base-a4foo3ho.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require";
+
 const pool = new Pool({
   connectionString,
   ssl: {
     rejectUnauthorized: false, 
   },
 });
-// const pool = mysql.createPool({
-//   host: '85.209.154.162',
-//   user: 'root',
-//   password: 'Haw4RYArvXY7bLnE3psK',
-//   database: 'webinar',
-// });
 
 export default pool;
