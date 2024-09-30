@@ -32,12 +32,12 @@ export async function GET() {
       console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
-        Object.keys(scheduledJobs).forEach(jobName => {
-            const job = scheduledJobs[jobName];
-            job.cancel(); 
-            console.log(`Задача "${jobName}" была отменена`); // Логируем отмену задачи
-            delete scheduledJobs[jobName]; 
-        });
+        // Object.keys(scheduledJobs).forEach(jobName => {
+        //     const job = scheduledJobs[jobName];
+        //     job.cancel(); 
+        //     console.log(`Задача "${jobName}" была отменена`); // Логируем отмену задачи
+        //     delete scheduledJobs[jobName]; 
+        // });
     }
 
     if (!isScheduled) {
