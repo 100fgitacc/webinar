@@ -6,6 +6,7 @@ import withReactContent from 'sweetalert2-react-content'
 import UserLogin from '/components/login_popup';
 import { decodeJwt } from 'jose';
 import 'animate.css';
+import axios from 'axios';
 const MySwal = withReactContent(Swal)
 
 const Chat = ({ isAdmin, userName, setMessagesCount, streamEndSeconds, setStreamEnded}) => {
@@ -28,7 +29,7 @@ const Chat = ({ isAdmin, userName, setMessagesCount, streamEndSeconds, setStream
         if (data.streamEnded) {
           setVisibleMessages([]);
           setStreamEnded(true);
-          
+          await axios.get('/api/messages', { headers: { 'Cache-Control': 'no-cache' } });
           return;
         }
   

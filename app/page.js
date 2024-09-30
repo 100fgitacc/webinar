@@ -117,6 +117,7 @@ const HomePage = () => {
   
 
   const [refreshStreamData, setRefreshStreamData] = useState(false);
+  console.log(startStream.streamStatus);
   useEffect(() => {
     if (startStream.startTime && startStream.timeDifference) {
       const interval = setInterval(() => {
