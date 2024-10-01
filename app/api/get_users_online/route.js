@@ -55,10 +55,11 @@ export async function GET() {
     const videoDuration = streamRows[0]?.video_duration * 1000;
     const scenarioId = streamRows[0]?.scenario_id;
 
-    if (previousStartTime?.getTime() !== startTime.getTime()) {
+    if (!previousStartTime || previousStartTime?.getTime() !== startTime.getTime()) {
       isScheduled = false;
       previousStartTime = startTime;
     }
+    
     if (!isScheduled) {
       console.log(`Планируем расписание онлайна`);
       isScheduled = true;
@@ -89,7 +90,6 @@ export async function GET() {
           });
         }
       });
-
       endStreamTime = new Date(startTime.getTime() + videoDuration);
       if (!schedule.scheduledJobs[`end-stream-${endStreamTime.getTime()}`]) {
         const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {

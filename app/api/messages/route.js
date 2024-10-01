@@ -18,8 +18,9 @@ export async function GET() {
     `;
     const { rows: streamRows } = await client.query(queryStream);
     console.log('Текущий стрим:',streamRows);
+  
     
-    const startTime = streamRows[0]?.start_date; 
+    const startTime = new Date(streamRows[0]?.start_date);
     const scenarioId = streamRows[0]?.scenario_id;
     const videoDuration = streamRows[0]?.video_duration * 1000;
 
@@ -27,13 +28,12 @@ export async function GET() {
       throw new Error('Не удалось найти время начала или ID сценария');
     }
 
-   
-    if (previousStartTime?.getTime() !== startTime.getTime()) {
+    if (!previousStartTime || previousStartTime?.getTime() !== startTime.getTime()) {
       console.log('Время изменилось и задача ещё актуальна, флаг сброшен');
       isScheduled = false;
       previousStartTime = startTime; 
     }
-
+    
     if (!isScheduled) {
       console.log(`Планируем задачи для стрима, начавшегося в ${startTime}`);
       isScheduled = true;
@@ -45,10 +45,10 @@ export async function GET() {
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
       const commentsSchedule = JSON.parse(scenarioRows[0]?.scenario_text || '[]');
-
-      
+   
       commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
       const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
+       
         
         if (!schedule.scheduledJobs[`${text}-${scheduleTime}`]) { 
           
@@ -101,8 +101,8 @@ export async function GET() {
               console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
         
             // Логируем установку задачи на удаление через 
-            // const clearMessagesTime = new Date(Date.now() +  1800000);
-            const clearMessagesTime = new Date(Date.now() +  5000);
+            const clearMessagesTime = new Date(Date.now() +  1200000);
+            // const clearMessagesTime = new Date(Date.now() +  5000);
             console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
             
             schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
@@ -147,6 +147,8 @@ export async function GET() {
       } else {
         console.log('Задача "saveAndClearMessages" уже существует, пропускаем.');
       }
+    
+      
       if (!schedule.scheduledJobs['unpinMessage']) {
         try {
           const queryScenario = `
