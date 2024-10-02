@@ -283,6 +283,7 @@ async function updatePinnedStatus(messageId, pinned) {
   }
 }
 async function updateAndBroadcastPinnedStatus(messageId, pinned) {
+  
   try {
     const messagePayload = {
       messageId,
