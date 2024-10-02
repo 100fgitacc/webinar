@@ -86,67 +86,80 @@ export async function GET() {
         console.log(`Планируем задачу очистки сообщений на время ${new Date(videoEndTime)}`);
         
         schedule.scheduleJob('saveAndClearMessages', new Date(videoEndTime), async () => {
-          console.log(`Выполняем задачу по сохранению и очистке сообщений`);
-          
-          const taskClient = await pool.connect(); 
-          try {
-            const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
-            const { rows: messages } = await taskClient.query(messagesQuery);
-        
-            const saveQuery = `
-              INSERT INTO archived_messages (messages)
-              VALUES ($1)
-            `;
-             const result = await taskClient.query(saveQuery, [JSON.stringify(messages)]);
-              console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
-        
-            // Логируем установку задачи на удаление через 
-            const clearMessagesTime = new Date(Date.now() +  1200000);
-            // const clearMessagesTime = new Date(Date.now() +  5000);
-            console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
-            
-            schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
-              console.log('Начинаю задачу по удалению сообщений');
-              
-              const deleteClient = await pool.connect(); 
-              try {
-                console.log('Удаляем сообщения из таблицы messages...');
-                
-                const deleteQuery = 'DELETE FROM messages';
-                const result = await deleteClient.query(deleteQuery);
-                
-                console.log(`Удалено строк: ${result.rowCount}`);
-                console.log('Все сообщения успешно удалены из таблицы messages.');
-                const updateStreamQuery = `
-                    UPDATE streams
-                    SET ended = true
-                    WHERE id = $1
+            console.log(`Выполняем задачу по сохранению и очистке сообщений`);
+    
+            const taskClient = await pool.connect(); 
+            try {
+                console.log('Соединение с базой данных установлено для сохранения сообщений.');
+    
+                const messagesQuery = 'SELECT * FROM messages ORDER BY sending_time ASC';
+                console.log('Выполняем запрос для получения сообщений...');
+                const { rows: messages } = await taskClient.query(messagesQuery);
+                console.log(`Получено сообщений: ${messages.length}`);
+    
+                const saveQuery = `
+                  INSERT INTO archived_messages (messages)
+                  VALUES ($1)
                 `;
-                await deleteClient.query(updateStreamQuery, [streamId]);
-                console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
-                broadcastMessages([], null, true);
-                const scheduledJobs = schedule.scheduledJobs;
-                Object.keys(scheduledJobs).forEach(jobName => {
-                  const job = scheduledJobs[jobName];
-                  job.cancel(); 
-                  delete scheduledJobs[jobName]; 
+                console.log('Сохраняем сообщения в архив...');
+                const result = await taskClient.query(saveQuery, [JSON.stringify(messages)]);
+                console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
+    
+                // Логируем установку задачи на удаление через 20 минут
+                const clearMessagesTime = new Date(Date.now() + 1200000);
+                console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
+                
+                schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
+                    console.log('Начинаю задачу по удалению сообщений');
+                    
+                    const deleteClient = await pool.connect(); 
+                    try {
+                        console.log('Соединение с базой данных установлено для удаления сообщений.');
+                        console.log('Удаляем сообщения из таблицы messages...');
+    
+                        const deleteQuery = 'DELETE FROM messages';
+                        const result = await deleteClient.query(deleteQuery);
+                        console.log(`Удалено строк: ${result.rowCount}`);
+                        console.log('Все сообщения успешно удалены из таблицы messages.');
+    
+                        const updateStreamQuery = `
+                            UPDATE streams
+                            SET ended = true
+                            WHERE id = $1
+                        `;
+                        await deleteClient.query(updateStreamQuery, [streamId]);
+                        console.log(`Стрим с ID ${streamId} завершён (ended = true)`);
+    
+                        // Передача пустого массива сообщений
+                        broadcastMessages([], null, true);
+    
+                        // Отмена всех запланированных задач
+                        const scheduledJobs = schedule.scheduledJobs;
+                        console.log('Отменяем все запланированные задачи...');
+                        Object.keys(scheduledJobs).forEach(jobName => {
+                            const job = scheduledJobs[jobName];
+                            job.cancel(); 
+                            delete scheduledJobs[jobName]; 
+                        });
+                        console.log('Все задачи отменены.');
+                    } catch (error) {
+                        console.error('Ошибка при очистке таблицы сообщений:', error);
+                    } finally {
+                        deleteClient.release();
+                        console.log('Соединение с базой данных для удаления сообщений закрыто.');
+                    }
                 });
-              } catch (error) {
-                console.error('Ошибка при очистке таблицы сообщений:', error);
-              } finally {
-                deleteClient.release();
-              }
-            });
-        
-          } catch (error) {
-            console.error('Ошибка при сохранении сообщений в архив:', error);
-          } finally {
-            taskClient.release(); 
-          }
+    
+            } catch (error) {
+                console.error('Ошибка при сохранении сообщений в архив:', error);
+            } finally {
+                taskClient.release(); 
+                console.log('Соединение с базой данных для сохранения сообщений закрыто.');
+            }
         });
-      } else {
+    } else {
         console.log('Задача "saveAndClearMessages" уже существует, пропускаем.');
-      }
+    }
     
       
       if (!schedule.scheduledJobs['unpinMessage']) {

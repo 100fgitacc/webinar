@@ -69,7 +69,7 @@ export async function GET() {
         WHERE id = $1
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-      const scenarioOnline = scenarioRows[0]?.scenario_online || '[]';
+      const scenarioOnline = JSON.parse(scenarioRows[0]?.scenario_online) || '[]';
       firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].time : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
 
