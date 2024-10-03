@@ -73,9 +73,12 @@ export async function GET() {
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
       const scenarioOnline = JSON.parse(scenarioRows[0]?.scenario_online) || '[]';
+      console.log(scenarioOnline);
       firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].time : null;
+      console.log('firstShowAt',firstShowAt);
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
-
+      console.log('switchTime',switchTime);
+      
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
           currentOnlineUsers = clients.length; 
