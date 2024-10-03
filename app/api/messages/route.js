@@ -44,7 +44,7 @@ export async function GET() {
         WHERE id = $1
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-      const commentsSchedule = scenarioRows[0]?.scenario_text || '[]';
+      const commentsSchedule = JSON.parse(scenarioRows[0]?.scenario_text) || '[]';
    
       commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
       const scheduleTime = new Date(startTime).getTime() + showAt * 1000;
@@ -173,7 +173,7 @@ export async function GET() {
           
           const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
                 
-          const unpinSchedule = scenarioRows[0]?.scenario_unpin || '[]';
+          const unpinSchedule = JSON.parse(scenarioRows[0]?.scenario_unpin) || '[]';
 
             if (Array.isArray(unpinSchedule) && unpinSchedule.length > 0) {
               unpinSchedule.forEach(({ time }, index) => {
