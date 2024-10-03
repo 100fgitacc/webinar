@@ -40,7 +40,9 @@ async function broadcastOnlineUsers(count) {
   });
 }
 
-
+console.log('previousStartTime:', previousStartTime);
+console.log('firstShowAt:', firstShowAt);
+console.log('Расчет switchTime:', new Date(previousStartTime.getTime() + firstShowAt * 1000));
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
   const client = await pool.connect();
@@ -80,17 +82,22 @@ export async function GET() {
       console.log('switchTime',switchTime);
       
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
+        console.log('Создаем задачу для переключения онлайн статуса на:', switchTime);
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
           currentOnlineUsers = clients.length; 
           broadcastOnlineUsers(currentOnlineUsers);
           console.log('55555555555555555555555555');
         });
+      } else {
+        console.log('Задача уже существует для:', switchTime);
       }
 
       scenarioOnline.forEach(({ time, count }) => {
         const scheduleTime = new Date(startTime.getTime() + time * 1000);
-
-       if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
+        console.log('Планируем задачу на время:', scheduleTime);
+        
+        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
+          console.log('Создаем задачу для количества пользователей:', count);
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
