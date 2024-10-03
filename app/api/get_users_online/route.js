@@ -17,7 +17,8 @@ async function broadcastOnlineUsers(count) {
  
   
   let userPayload;
-  
+  console.log('Server time:', serverTime);
+  console.log('Switch time:', switchTime);
 
   if (serverTime >= switchTime) {
     userPayload = { onlineUsers: count }; 
@@ -72,8 +73,7 @@ export async function GET() {
       const scenarioOnline = JSON.parse(scenarioRows[0]?.scenario_online) || '[]';
       firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].time : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
-      console.log('switchTime',switchTime);
-      
+
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
           currentOnlineUsers = clients.length; 
@@ -83,7 +83,7 @@ export async function GET() {
 
       scenarioOnline.forEach(({ time, count }) => {
         const scheduleTime = new Date(startTime.getTime() + time * 1000);
-        console.log('scheduleTime',scheduleTime);
+
        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
