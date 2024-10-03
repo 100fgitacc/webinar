@@ -12,22 +12,28 @@ let firstShowAt;
 
 // Функция для трансляции обновленного количества пользователей
 async function broadcastOnlineUsers(count) {
-  console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  console.log(count);
   
   const serverTime = new Date();
   const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
 
-  let userPayload;
   
+  
+  let userPayload;
+  console.log('serverTime', serverTime);
+  console.log('switchTime', switchTime);
 
   if (serverTime >= switchTime) {
+    console.log('scheduled');
+    
     userPayload = { onlineUsers: count }; 
   } else {
+    console.log('real');
     userPayload = { onlineUsers: clients.length }; 
   }
   
   const userData = `data: ${JSON.stringify(userPayload)}\n\n`;
-
+ 
   clients.forEach((client) => {
     client.write(userData).catch((err) => {
       const clientIndex = clients.indexOf(client);
