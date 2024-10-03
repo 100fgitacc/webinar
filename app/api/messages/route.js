@@ -45,6 +45,7 @@ export async function GET() {
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
       const commentsSchedule = JSON.parse(scenarioRows[0]?.scenario_text) || '[]';
+      
    
       commentsSchedule.forEach(({ showAt, text, sender, pinned, isAdmin }) => {
       const scheduleTime = new Date(startTime).getTime() + showAt * 1000;

@@ -250,8 +250,8 @@ const Chat = ({ isAdmin, userName, setMessagesCount, streamEndSeconds, setStream
                     </button>
                   )
                 )}
-                <p className={styles['message-text']}>
-                  {mess.text.replace(/\\n/g, '\n').split('\n').map((line, index) => (
+               <p className={styles['message-text']}>
+                  {mess.text.replace(/n/g, '\n').split('\n').map((line, index) => (
                     <React.Fragment key={index}>
                       {line}
                       <br />
