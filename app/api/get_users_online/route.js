@@ -12,15 +12,13 @@ let firstShowAt;
 
 // Функция для трансляции обновленного количества пользователей
 async function broadcastOnlineUsers(count) {
-  console.log('11111111111111111111111111111111');
+  console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
   
   const serverTime = new Date();
   const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
- 
-  
+
   let userPayload;
-  console.log('Server time:', serverTime);
-  console.log('Switch time:', switchTime);
+  
 
   if (serverTime >= switchTime) {
     userPayload = { onlineUsers: count }; 
@@ -40,7 +38,6 @@ async function broadcastOnlineUsers(count) {
   });
 }
 
-
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
   const client = await pool.connect();
@@ -48,8 +45,7 @@ export async function GET() {
     const queryStream = `
       SELECT start_date, scenario_id, video_duration
       FROM streams
-      WHERE ended = false
-      ORDER BY start_date ASC
+      ORDER BY start_date DESC
       LIMIT 1
     `;
     const { rows: streamRows } = await client.query(queryStream);
@@ -58,13 +54,15 @@ export async function GET() {
     const videoDuration = streamRows[0]?.video_duration * 1000;
     const scenarioId = streamRows[0]?.scenario_id;
 
-    if (!previousStartTime || previousStartTime?.getTime() !== startTime.getTime()) {
+    if (previousStartTime?.getTime() !== startTime.getTime()) {
       isScheduled = false;
       previousStartTime = startTime;
     }
-    
+
+    console.log('isScheduled ', isScheduled)
+
     if (!isScheduled) {
-      console.log(`Планируем расписание онлайна !`);
+      console.log('Планируем!')
       isScheduled = true;
       const queryScenario = `
         SELECT scenario_online
@@ -72,51 +70,39 @@ export async function GET() {
         WHERE id = $1
       `;
       const { rows: scenarioRows } = await client.query(queryScenario, [scenarioId]);
-      const scenarioOnline = JSON.parse(scenarioRows[0]?.scenario_online) || '[]';
-      console.log(scenarioOnline);
-      firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].time : null;
-      console.log('firstShowAt',firstShowAt);
+      const scenarioOnline = scenarioRows[0]?.scenario_online || [];
+      firstShowAt = scenarioOnline.length > 0 ? scenarioOnline[0].showAt : null;
       const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
-      console.log('switchTime',switchTime);
-      
+
+      // Проверяем и планируем задачу для переключения онлайн-пользователей
       if (!schedule.scheduledJobs[`broadcast-switch-time-${switchTime.getTime()}`]) {
-        console.log('Создаем задачу для переключения онлайн статуса на:', switchTime);
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
-          currentOnlineUsers = clients.length; 
+          currentOnlineUsers = clients.length; // Обновляем перед запуском
           broadcastOnlineUsers(currentOnlineUsers);
-          console.log('55555555555555555555555555');
         });
-      } else {
-        console.log('Задача уже существует для:', switchTime);
       }
 
-      scenarioOnline.forEach(({ time, count }) => {
-        const scheduleTime = new Date(startTime.getTime() + time * 1000);
-        console.log('Планируем задачу на время:', scheduleTime);
-        
-        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) {
-          console.log('Создаем задачу для количества пользователей:', count);
+      scenarioOnline.forEach(({ showAt, count }) => {
+        const scheduleTime = new Date(startTime.getTime() + showAt * 1000);
+
+        if (!schedule.scheduledJobs[`users-${scheduleTime.getTime()}`]) { 
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
-            console.log('22222222222222222222');
           });
         }
       });
+
       endStreamTime = new Date(startTime.getTime() + videoDuration);
       if (!schedule.scheduledJobs[`end-stream-${endStreamTime.getTime()}`]) {
         const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
           broadcastOnlineUsers(currentOnlineUsers);
-          console.log('1333333333333333333');
           endStreamJob.cancel();
-          console.log('Показываем реальный онлайн', currentOnlineUsers);
+          console.log('Задача завершения стрима была отменена');
         });
       }
     }
-    
-    console.log('previousStartTime:', previousStartTime);
-console.log('firstShowAt:', firstShowAt);
-console.log('Расчет switchTime:', new Date(previousStartTime.getTime() + firstShowAt * 1000));
+
     // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
