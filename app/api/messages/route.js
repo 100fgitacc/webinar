@@ -106,7 +106,8 @@ export async function GET() {
                 console.log(`Сообщения успешно сохранены в архив: ${result.rowCount}`);
     
                 // Логируем установку задачи на удаление через 20 минут
-                const clearMessagesTime = new Date(Date.now() + 1200000);
+                // const clearMessagesTime = new Date(Date.now() + 1200000);  
+                const clearMessagesTime = new Date(Date.now() + 5000);  
                 console.log('Запланирована задача по удалению сообщений на:', clearMessagesTime);
                 
                 schedule.scheduleJob('clearMessages', clearMessagesTime, async () => {
@@ -134,14 +135,14 @@ export async function GET() {
                         broadcastMessages([], null, true);
     
                         // Отмена всех запланированных задач
-                        const scheduledJobs = schedule.scheduledJobs;
-                        console.log('Отменяем все запланированные задачи...');
-                        Object.keys(scheduledJobs).forEach(jobName => {
-                            const job = scheduledJobs[jobName];
-                            job.cancel(); 
-                            delete scheduledJobs[jobName]; 
-                        });
-                        console.log('Все задачи отменены.');
+                        // const scheduledJobs = schedule.scheduledJobs;
+                        // console.log('Отменяем все запланированные задачи...');
+                        // Object.keys(scheduledJobs).forEach(jobName => {
+                        //     const job = scheduledJobs[jobName];
+                        //     job.cancel(); 
+                        //     delete scheduledJobs[jobName]; 
+                        // });
+                        // console.log('Все задачи отменены.');
                     } catch (error) {
                         console.error('Ошибка при очистке таблицы сообщений:', error);
                     } finally {
