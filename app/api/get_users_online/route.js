@@ -40,9 +40,7 @@ async function broadcastOnlineUsers(count) {
   });
 }
 
-console.log('previousStartTime:', previousStartTime);
-console.log('firstShowAt:', firstShowAt);
-console.log('Расчет switchTime:', new Date(previousStartTime.getTime() + firstShowAt * 1000));
+
 // SSE для клиентов, которые запрашивают количество онлайн пользователей
 export async function GET() {
   const client = await pool.connect();
@@ -116,6 +114,9 @@ export async function GET() {
       }
     }
     
+    console.log('previousStartTime:', previousStartTime);
+console.log('firstShowAt:', firstShowAt);
+console.log('Расчет switchTime:', new Date(previousStartTime.getTime() + firstShowAt * 1000));
     // Создаем поток данных для SSE
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
