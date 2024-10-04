@@ -21,11 +21,9 @@ async function broadcastOnlineUsers(count) {
 
   if (serverTime >= switchTime) {
     userPayload = { onlineUsers: count }; 
-    console.log('fake');
     
   } else {
     userPayload = { onlineUsers: clients.length }; 
-    console.log('real');
     
   }
   
