@@ -119,62 +119,25 @@ const HomePage = () => {
   const [refreshStreamData, setRefreshStreamData] = useState(false);
   console.log(startStream.streamStatus);
   
-  // useEffect(() => {
-  //   if (startStream.startTime && startStream.timeDifference) {
-  //     const interval = setInterval(() => {
-  //       const now = Date.now() - startStream.timeDifference;
-  
-  //       const timeDifferenceFromStart = new Date(startStream.startTime) - now;
-  //       setStartStream(prevState => {
-  //         if (timeDifferenceFromStart <= 0 && prevState.streamStatus === 'notStarted') {
-  //           console.log('11111111111');
-  
-  //           return {
-  //             ...prevState,
-  //             countdown: '00:00:00',
-  //             streamStatus: 'inProcess'
-  //           };
-  //         } else {
-  //           const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
-  //           const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
-  //           const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
-  //           return {
-  //             ...prevState,
-  //             countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-  //           };
-  //         }
-  //       });
-  
-  //       // Обновление delayTime
-  //       const clientCurrentTime = Date.now() - startStream.timeDifference;
-  //       const newDelayTime = Math.round((clientCurrentTime - new Date(startStream.startTime).getTime()) / 1000);
-  //       setDelayTime(newDelayTime);
-  
-  //     }, 1000);
-  
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [startStream.startTime, startStream.timeDifference, refreshStreamData]);
   useEffect(() => {
-    if (startStream.startTime && startStream.serverTime) {
+    if (startStream.startTime && startStream.timeDifference) {
       const interval = setInterval(() => {
         const currentServerTime = new Date().getTime() + (Date.now() - new Date(startStream.serverTime).getTime());
-  
         const timeDifferenceFromStart = new Date(startStream.startTime).getTime() - currentServerTime;
   
         setStartStream(prevState => {
           if (timeDifferenceFromStart <= 0 && prevState.streamStatus === 'notStarted') {
             console.log('11111111111');
+  
             return {
               ...prevState,
               countdown: '00:00:00',
-              streamStatus: 'inProcess' 
+              streamStatus: 'inProcess'
             };
-          } else if (timeDifferenceFromStart > 0) {
+          } else {
             const hours = Math.floor(timeDifferenceFromStart / (1000 * 60 * 60));
             const minutes = Math.floor((timeDifferenceFromStart % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeDifferenceFromStart % (1000 * 60)) / 1000);
-  
             return {
               ...prevState,
               countdown: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
@@ -182,14 +145,17 @@ const HomePage = () => {
           }
         });
   
-        const newDelayTime = Math.round((currentServerTime - new Date(startStream.startTime).getTime()) / 1000);
+        // Обновление delayTime
+        const clientCurrentTime = Date.now() - startStream.timeDifference;
+        const newDelayTime = Math.round((clientCurrentTime - new Date(startStream.startTime).getTime()) / 1000);
         setDelayTime(newDelayTime);
   
       }, 1000);
   
       return () => clearInterval(interval);
     }
-  }, [startStream.startTime, startStream.serverTime]);
+  }, []);
+  
   useEffect(() => {
     if (typeof window !== "undefined") {
       setWindowWidth(window.innerWidth);
