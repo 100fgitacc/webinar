@@ -276,12 +276,21 @@ export async function POST(request) {
 async function updatePinnedStatus(messageId, pinned) {
   const client = await pool.connect();
   try {
+    console.log(`Параметры запроса: pinned = ${pinned}, messageId = ${messageId}`);
+
     const updateQuery = 'UPDATE messages SET pinned = $1 WHERE id = $2';
-    await client.query(updateQuery, [pinned, messageId]);
-    await updateAndBroadcastPinnedStatus(messageId, pinned);
+    const result = await client.query(updateQuery, [pinned, messageId]);
+
+    if (result.rowCount === 0) {
+        console.error(`Ошибка: сообщение с id ${messageId} не найдено или не обновлено.`);
+    } else {
+        console.log(`Успешно обновлено ${result.rowCount} строк(а).`);
+        await updateAndBroadcastPinnedStatus(messageId, pinned);
+    }
   } catch (error) {
+      console.error('Ошибка при обновлении статуса pinned:', error);
   } finally {
-    client.release();
+      client.release();
   }
 }
 async function updateAndBroadcastPinnedStatus(messageId, pinned) {

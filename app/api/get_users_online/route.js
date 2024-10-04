@@ -12,15 +12,12 @@ let firstShowAt;
 
 // Функция для трансляции обновленного количества пользователей
 async function broadcastOnlineUsers(count) {
-  console.log('11111111111111111111111111111111');
   
   const serverTime = new Date();
   const switchTime = new Date(previousStartTime.getTime() + firstShowAt * 1000);
  
   
   let userPayload;
-  console.log('Server time:', serverTime);
-  console.log('Switch time:', switchTime);
 
   if (serverTime >= switchTime) {
     userPayload = { onlineUsers: count }; 
@@ -84,7 +81,6 @@ export async function GET() {
         schedule.scheduleJob(`broadcast-switch-time-${switchTime.getTime()}`, switchTime, () => {
           currentOnlineUsers = clients.length; 
           broadcastOnlineUsers(currentOnlineUsers);
-            console.log('22222222222222222222');
         });
       }
 
@@ -95,7 +91,6 @@ export async function GET() {
           schedule.scheduleJob(`users-${scheduleTime.getTime()}`, scheduleTime, () => {
             currentOnlineUsers = count;
             broadcastOnlineUsers(currentOnlineUsers);
-            console.log('22222222222222222222');
           });
         }
       });
@@ -103,7 +98,6 @@ export async function GET() {
       if (!schedule.scheduledJobs[`end-stream-${endStreamTime.getTime()}`]) {
         const endStreamJob = schedule.scheduleJob(`end-stream-${endStreamTime.getTime()}`, endStreamTime, () => {
           broadcastOnlineUsers(currentOnlineUsers);
-          console.log('1333333333333333333');
           endStreamJob.cancel();
           console.log('Показываем реальный онлайн', currentOnlineUsers);
         });
