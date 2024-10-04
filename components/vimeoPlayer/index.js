@@ -126,8 +126,6 @@ const VimeoPlayer = ({ startStream, delayTime }) => {
     }
   }, [delayTime]);
   
-  console.log(delayTime);
-  
   const handlePlayClick = () => {
     if (player) {
       player.play().then(() => {

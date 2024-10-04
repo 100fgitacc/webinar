@@ -122,9 +122,9 @@ const HomePage = () => {
   useEffect(() => {
     if (startStream.startTime && startStream.timeDifference) {
       const interval = setInterval(() => {
-        const currentServerTime = new Date().getTime() + (Date.now() - new Date(startStream.serverTime).getTime());
-        const timeDifferenceFromStart = new Date(startStream.startTime).getTime() - currentServerTime;
+        const now = Date.now() - startStream.timeDifference;
   
+        const timeDifferenceFromStart = new Date(startStream.startTime) - now;
         setStartStream(prevState => {
           if (timeDifferenceFromStart <= 0 && prevState.streamStatus === 'notStarted') {
             console.log('11111111111');
@@ -154,8 +154,8 @@ const HomePage = () => {
   
       return () => clearInterval(interval);
     }
-  }, []);
-  
+  }, [startStream.startTime, startStream.timeDifference, refreshStreamData]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setWindowWidth(window.innerWidth);
