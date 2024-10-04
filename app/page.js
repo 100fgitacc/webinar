@@ -70,8 +70,9 @@ const HomePage = () => {
       const duration = video_duration || 0;
       const streamEndTime = new Date(startTime);
       streamEndTime.setSeconds(streamEndTime.getSeconds() + duration);
-   
+      console.log('now', now);
       
+      console.log('startTime', startTime);
       const streamEndSeconds = streamEndTime.getTime();
       let streamStatus = '';
       if (now < startTime) {
