@@ -63,8 +63,7 @@ const HomePage = () => {
       }
       
       const { start_date, video_duration, scenario_id, video_id, button_show_at, serverTime } = streamsData;
-      console.log(serverTime);
-      
+  
       const startTime = new Date(start_date);
   
       const now = new Date(serverTime);
@@ -72,8 +71,8 @@ const HomePage = () => {
       const streamEndTime = new Date(startTime);
       streamEndTime.setSeconds(streamEndTime.getSeconds() + duration);
       console.log('now', now);
+      
       console.log('startTime', startTime);
-
       const streamEndSeconds = streamEndTime.getTime();
       let streamStatus = '';
       if (now < startTime) {
@@ -83,6 +82,7 @@ const HomePage = () => {
         streamStatus = 'ended';
       }else {
         streamStatus = 'inProcess';
+        console.log('222222222222');
       }
      
      
