@@ -71,8 +71,8 @@ const HomePage = () => {
       const streamEndTime = new Date(startTime);
       streamEndTime.setSeconds(streamEndTime.getSeconds() + duration);
       console.log('now', now);
-      
       console.log('startTime', startTime);
+
       const streamEndSeconds = streamEndTime.getTime();
       let streamStatus = '';
       if (now < startTime) {
@@ -82,7 +82,6 @@ const HomePage = () => {
         streamStatus = 'ended';
       }else {
         streamStatus = 'inProcess';
-        console.log('222222222222');
       }
      
      
