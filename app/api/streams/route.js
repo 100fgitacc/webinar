@@ -13,7 +13,7 @@ export async function GET() {
     `;
     const { rows } = await client.query(query);
 
-    const serverTime = Date.now();
+    const serverTime = new Date().toISOString();
     console.log(serverTime);
     
     return NextResponse.json({
