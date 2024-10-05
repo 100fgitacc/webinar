@@ -63,7 +63,8 @@ const HomePage = () => {
       }
       
       const { start_date, video_duration, scenario_id, video_id, button_show_at, serverTime } = streamsData;
-  
+      console.log(serverTime);
+      
       const startTime = new Date(start_date);
   
       const now = new Date(serverTime);

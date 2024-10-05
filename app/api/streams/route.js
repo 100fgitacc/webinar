@@ -14,6 +14,7 @@ export async function GET() {
     const { rows } = await client.query(query);
 
     const serverTime = Date.now();
+    console.log(serverTime);
     
     return NextResponse.json({
       ...rows[0],
